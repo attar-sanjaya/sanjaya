@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Send } from 'lucide-react';
+import CalendarApp from './CalendarApp';
 
 interface AppWindowProps {
   app: string;
@@ -7,15 +8,28 @@ interface AppWindowProps {
 }
 
 const AppWindow: React.FC<AppWindowProps> = ({ app, onClose }) => {
+  if (app === 'Calendar') {
+    return (
+      <div className="relative animate-in fade-in zoom-in duration-300">
+        <CalendarApp />
+      </div>
+    );
+  }
+
   return (
     <div className="w-[600px] h-[400px] max-w-[90vw] glass-morphism rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-700/50 bg-slate-900/70 backdrop-blur-3xl animate-in fade-in zoom-in duration-300">
       {/* Window Header */}
       <div className="h-12 border-b border-white/10 flex items-center justify-between px-4 bg-white/5">
         <div className="flex items-center gap-3">
-          <div className="flex gap-1.5">
-            <button onClick={onClose} className="w-3 h-3 rounded-full bg-red-500/80 hover:bg-red-500 transition-colors" />
-            <button className="w-3 h-3 rounded-full bg-yellow-500/80 hover:bg-yellow-500 transition-colors" />
-            <button className="w-3 h-3 rounded-full bg-green-500/80 hover:bg-green-500 transition-colors" />
+          <div className="flex gap-2 group/window-controls">
+            <button 
+              onClick={onClose} 
+              className="w-3.5 h-3.5 rounded-full bg-red-500/90 hover:bg-red-500 flex items-center justify-center transition-colors"
+            >
+              <X size={10} className="text-black opacity-0 group-hover/window-controls:opacity-100 transition-opacity" />
+            </button>
+            <button className="w-3.5 h-3.5 rounded-full bg-yellow-500/90 hover:bg-yellow-500 transition-colors" />
+            <button className="w-3.5 h-3.5 rounded-full bg-green-500/90 hover:bg-green-500 transition-colors" />
           </div>
           <span className="text-sm font-medium text-white/80">{app}</span>
         </div>
@@ -46,35 +60,6 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, onClose }) => {
               <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/50 hover:text-cyan-400 transition-colors rounded-lg hover:bg-white/5">
                 <Send size={16} />
               </button>
-            </div>
-          </div>
-        ) : app === 'Calendar' ? (
-          <div className="h-full flex flex-col items-center justify-center">
-            <div className="w-full max-w-sm bg-white/5 border border-white/10 rounded-2xl p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-medium text-white/90">May 2026</h3>
-                <div className="flex gap-2">
-                  <button className="p-1 hover:bg-white/10 rounded text-white/50 hover:text-white transition-colors">&lt;</button>
-                  <button className="p-1 hover:bg-white/10 rounded text-white/50 hover:text-white transition-colors">&gt;</button>
-                </div>
-              </div>
-              <div className="grid grid-cols-7 gap-2 text-center text-xs mb-2">
-                {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-                  <div key={day} className="text-white/40 font-medium">{day}</div>
-                ))}
-              </div>
-              <div className="grid grid-cols-7 gap-2 text-center text-sm">
-                {Array.from({ length: 31 }, (_, i) => i + 1).map(date => (
-                  <div 
-                    key={date} 
-                    className={`w-8 h-8 flex items-center justify-center rounded-full mx-auto cursor-pointer transition-colors ${
-                      date === 4 ? 'bg-cyan-500 text-black font-semibold' : 'text-white/70 hover:bg-white/10'
-                    }`}
-                  >
-                    {date}
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         ) : (

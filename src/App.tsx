@@ -16,6 +16,10 @@ const App: React.FC = () => {
     setBgIndex((prev) => (prev + 1) % BACKGROUNDS.length);
   };
 
+  const toggleCalendar = () => {
+    setActiveApp((prev) => (prev === 'Calendar' ? null : 'Calendar'));
+  };
+
   return (
     <div 
       className="h-screen w-screen flex flex-col justify-between items-center bg-cover bg-center overflow-hidden transition-all duration-700"
@@ -25,7 +29,11 @@ const App: React.FC = () => {
       <div className="absolute inset-0 bg-slate-950/20 backdrop-blur-[1px] -z-10" />
 
       {/* Top Section */}
-      <TopMenuBar onToggleBackground={toggleBackground} />
+      <TopMenuBar 
+        onToggleBackground={toggleBackground} 
+        onToggleCalendar={toggleCalendar}
+        isCalendarOpen={activeApp === 'Calendar'}
+      />
 
       {/* Center Section — empty for now or shows active app */}
       <main className="flex-1 flex items-center justify-center w-full p-4 relative">

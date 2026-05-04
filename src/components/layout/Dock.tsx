@@ -38,7 +38,7 @@ const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick }) =
 
 interface DockProps {
   activeApp: string | null;
-  onAppChange: (app: string) => void;
+  onAppChange: (app: string | null) => void;
 }
 
 const Dock: React.FC<DockProps> = ({ activeApp, onAppChange }) => {
@@ -48,25 +48,25 @@ const Dock: React.FC<DockProps> = ({ activeApp, onAppChange }) => {
         icon={<Globe2 size={24} strokeWidth={1.5} />}
         label="Mind"
         isActive={activeApp === 'Mind'}
-        onClick={() => onAppChange('Mind')}
+        onClick={() => onAppChange(activeApp === 'Mind' ? null : 'Mind')}
       />
       <DockItem
         icon={<Share2 size={24} strokeWidth={1.5} />}
         label="Network"
         isActive={activeApp === 'Network'}
-        onClick={() => onAppChange('Network')}
+        onClick={() => onAppChange(activeApp === 'Network' ? null : 'Network')}
       />
       <DockItem
         icon={<StickyNote size={24} strokeWidth={1.5} />}
         label="Notes"
         isActive={activeApp === 'Notes'}
-        onClick={() => onAppChange('Notes')}
+        onClick={() => onAppChange(activeApp === 'Notes' ? null : 'Notes')}
       />
       <DockItem
         icon={<CalendarDays size={24} strokeWidth={1.5} />}
         label="Calendar"
         isActive={activeApp === 'Calendar'}
-        onClick={() => onAppChange('Calendar')}
+        onClick={() => onAppChange(activeApp === 'Calendar' ? null : 'Calendar')}
       />
     </div>
   );
