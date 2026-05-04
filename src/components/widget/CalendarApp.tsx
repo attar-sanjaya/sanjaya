@@ -27,8 +27,8 @@ const CalendarApp: React.FC = () => {
   const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
 
   return (
-    <div className="h-full flex flex-col items-center justify-center">
-      <div className="w-full max-w-sm bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl">
+    <div className="h-full flex flex-col items-center justify-center drop-shadow-2xl">
+      <div className="w-full max-w-sm glass-morphism bg-slate-950/70 backdrop-blur-[32px] border border-slate-700/60 rounded-[24px] p-6 shadow-2xl">
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-lg font-semibold text-white/90">
             {monthNames[month]} {year}
