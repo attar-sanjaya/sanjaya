@@ -1,7 +1,11 @@
 import React from 'react';
-import { Wifi, Smartphone, Calendar, Clock } from 'lucide-react';
+import { Wifi, Smartphone, Calendar, Clock, Image as ImageIcon } from 'lucide-react';
 
-const TopMenuBar: React.FC = () => {
+interface TopMenuBarProps {
+  onToggleBackground?: () => void;
+}
+
+const TopMenuBar: React.FC<TopMenuBarProps> = ({ onToggleBackground }) => {
   const [time, setTime] = React.useState(new Date());
 
   React.useEffect(() => {
@@ -18,6 +22,15 @@ const TopMenuBar: React.FC = () => {
       </div>
       
       <div className="flex items-center gap-5 text-white/60">
+        {onToggleBackground && (
+          <button 
+            onClick={onToggleBackground}
+            className="hover:text-cyan-400 cursor-pointer transition-colors focus:outline-none"
+            title="Change Wallpaper"
+          >
+            <ImageIcon size={14} />
+          </button>
+        )}
         <Wifi size={14} className="hover:text-cyan-400 cursor-pointer transition-colors" />
         <Smartphone size={14} className="hover:text-cyan-400 cursor-pointer transition-colors" />
         <Calendar size={14} className="hover:text-cyan-400 cursor-pointer transition-colors" />
