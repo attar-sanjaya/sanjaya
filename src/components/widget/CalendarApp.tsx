@@ -27,52 +27,50 @@ const CalendarApp: React.FC = () => {
   const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
 
   return (
-    <div className="h-full flex flex-col items-center justify-center drop-shadow-2xl">
-      <div className="w-full max-w-sm glass-morphism bg-slate-950/70 backdrop-blur-[32px] border border-slate-700/60 rounded-[24px] p-6 shadow-2xl">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-semibold text-white/90">
-            {monthNames[month]} {year}
-          </h3>
-          <div className="flex gap-2">
-            <button 
-              onClick={prevMonth}
-              className="p-1 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors"
+    <div className="h-full w-full flex flex-col p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h3 className="text-lg font-semibold text-white/90">
+          {monthNames[month]} {year}
+        </h3>
+        <div className="flex gap-2">
+          <button 
+            onClick={prevMonth}
+            className="p-1 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <button 
+            onClick={nextMonth}
+            className="p-1 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+      </div>
+      <div className="grid grid-cols-7 gap-2 text-center text-xs mb-3">
+        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+          <div key={day} className="text-white/40 font-medium">{day}</div>
+        ))}
+      </div>
+      <div className="grid grid-cols-7 gap-y-3 gap-x-2 text-center text-sm">
+        {blanks.map(blank => (
+          <div key={`blank-${blank}`} className="w-8 h-8" />
+        ))}
+        {days.map(date => {
+          const isToday = isCurrentMonth && date === today.getDate();
+          return (
+            <div 
+              key={date} 
+              className={`w-8 h-8 flex items-center justify-center rounded-full mx-auto cursor-pointer transition-colors ${
+                isToday 
+                  ? 'bg-cyan-500 text-slate-900 font-bold shadow-[0_0_10px_rgba(6,182,212,0.5)]' 
+                  : 'text-white/70 hover:bg-white/15'
+              }`}
             >
-              <ChevronLeft size={20} />
-            </button>
-            <button 
-              onClick={nextMonth}
-              className="p-1 hover:bg-white/10 rounded-lg text-white/50 hover:text-white transition-colors"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </div>
-        </div>
-        <div className="grid grid-cols-7 gap-2 text-center text-xs mb-3">
-          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
-            <div key={day} className="text-white/40 font-medium">{day}</div>
-          ))}
-        </div>
-        <div className="grid grid-cols-7 gap-y-3 gap-x-2 text-center text-sm">
-          {blanks.map(blank => (
-            <div key={`blank-${blank}`} className="w-8 h-8" />
-          ))}
-          {days.map(date => {
-            const isToday = isCurrentMonth && date === today.getDate();
-            return (
-              <div 
-                key={date} 
-                className={`w-8 h-8 flex items-center justify-center rounded-full mx-auto cursor-pointer transition-colors ${
-                  isToday 
-                    ? 'bg-cyan-500 text-slate-900 font-bold shadow-[0_0_10px_rgba(6,182,212,0.5)]' 
-                    : 'text-white/70 hover:bg-white/15'
-                }`}
-              >
-                {date}
-              </div>
-            );
-          })}
-        </div>
+              {date}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

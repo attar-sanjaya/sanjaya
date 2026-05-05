@@ -17,9 +17,9 @@ interface DockItemProps {
 const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick }) => (
   <button onClick={onClick} className="dock-item group relative px-3 py-1.5 focus:outline-none">
     <div className={cn(
-      "p-2 rounded-[14px] transition-all duration-300 group-hover:scale-110",
+      "p-1.5 rounded-[12px] transition-all duration-300 group-hover:scale-110",
       isActive
-        ? "bg-cyan-500/15 text-cyan-400 shadow-[0_0_16px_rgba(34,211,238,0.2)]"
+        ? "bg-cyan-500/15 text-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.2)]"
         : "text-white/50 group-hover:text-white/90 group-hover:bg-white/10"
     )}>
       {icon}
@@ -43,27 +43,27 @@ interface DockProps {
 
 const Dock: React.FC<DockProps> = ({ activeApp, onAppChange }) => {
   return (
-    <div className="mb-4 flex items-end gap-1 px-3 pt-2 pb-1.5 bg-slate-900/40 backdrop-blur-3xl border border-slate-700/40 rounded-3xl shadow-2xl">
+    <div className="mb-2 flex items-end gap-0.5 px-2 pt-1.5 pb-1 bg-slate-900/40 backdrop-blur-3xl border border-slate-700/40 rounded-2xl shadow-2xl">
       <DockItem
-        icon={<Globe2 size={24} strokeWidth={1.5} />}
+        icon={<Globe2 size={20} strokeWidth={1.5} />}
         label="Mind"
         isActive={activeApp === 'Mind'}
         onClick={() => onAppChange(activeApp === 'Mind' ? null : 'Mind')}
       />
       <DockItem
-        icon={<Share2 size={24} strokeWidth={1.5} />}
+        icon={<Share2 size={20} strokeWidth={1.5} />}
         label="Network"
         isActive={activeApp === 'Network'}
         onClick={() => onAppChange(activeApp === 'Network' ? null : 'Network')}
       />
       <DockItem
-        icon={<StickyNote size={24} strokeWidth={1.5} />}
+        icon={<StickyNote size={20} strokeWidth={1.5} />}
         label="Notes"
         isActive={activeApp === 'Notes'}
         onClick={() => onAppChange(activeApp === 'Notes' ? null : 'Notes')}
       />
       <DockItem
-        icon={<CalendarDays size={24} strokeWidth={1.5} />}
+        icon={<CalendarDays size={20} strokeWidth={1.5} />}
         label="Calendar"
         isActive={activeApp === 'Calendar'}
         onClick={() => onAppChange(activeApp === 'Calendar' ? null : 'Calendar')}
