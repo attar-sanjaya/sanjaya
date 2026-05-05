@@ -38,7 +38,7 @@ const App: React.FC = () => {
       />
 
       {/* Center Section — shows active apps */}
-      <main className="flex-1 w-full h-full relative pointer-events-none">
+      <main className="flex-1 w-full relative z-10">
         {activeApps.map((app, index) => (
           <AppWindow key={app} app={app} index={index} onClose={() => toggleApp(app)} />
         ))}
