@@ -5,17 +5,19 @@ import { Rnd } from 'react-rnd';
 
 interface AppWindowProps {
   app: string;
+  index: number;
   onClose: () => void;
 }
 
-const AppWindow: React.FC<AppWindowProps> = ({ app, onClose }) => {
+const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
   const isCalendar = app === 'Calendar';
   const defaultWidth = isCalendar ? 384 : 600;
   const defaultHeight = isCalendar ? 440 : 400;
 
-  // Initial centering calculations
-  const defaultX = typeof window !== 'undefined' ? Math.max(0, (window.innerWidth - defaultWidth) / 2) : 100;
-  const defaultY = typeof window !== 'undefined' ? Math.max(0, (window.innerHeight - defaultHeight) / 2) : 100;
+  // Initial centering calculations with staggering offset
+  const offset = index * 40;
+  const defaultX = typeof window !== 'undefined' ? Math.max(0, (window.innerWidth - defaultWidth) / 2) + offset : 100 + offset;
+  const defaultY = typeof window !== 'undefined' ? Math.max(0, (window.innerHeight - defaultHeight) / 2 - 50) + offset : 100 + offset;
 
   return (
     <Rnd
@@ -29,7 +31,11 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, onClose }) => {
       minHeight={200}
       bounds="parent"
       dragHandleClassName="window-drag-handle"
-      style={{ zIndex: 40 }}
+      enableResizing={{
+        top: true, right: true, bottom: true, left: true,
+        topRight: true, bottomRight: true, bottomLeft: true, topLeft: true
+      }}
+      style={{ zIndex: 40 + index }}
       className="absolute pointer-events-auto"
     >
       <div className="w-full h-full glass-morphism rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-700/50 bg-slate-900/70 backdrop-blur-3xl animate-in fade-in zoom-in duration-300">
