@@ -30,34 +30,22 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, onClose }) => {
       bounds="parent"
       dragHandleClassName="window-drag-handle"
       style={{ zIndex: 40 }}
-      className="absolute"
+      className="absolute pointer-events-auto"
     >
       <div className="w-full h-full glass-morphism rounded-2xl flex flex-col overflow-hidden shadow-2xl border border-slate-700/50 bg-slate-900/70 backdrop-blur-3xl animate-in fade-in zoom-in duration-300">
         {/* Window Header */}
         <div className="window-drag-handle h-10 border-b border-white/10 flex items-center justify-between px-4 bg-white/5 cursor-move shrink-0">
           <div className="flex items-center gap-3">
-            <div className="flex gap-2 group/window-controls">
-              <button 
-                onClick={onClose} 
-                className="w-3.5 h-3.5 rounded-full bg-red-500/90 hover:bg-red-500 flex items-center justify-center transition-colors"
-                onMouseDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
-              >
-                <X size={10} className="text-black opacity-0 group-hover/window-controls:opacity-100 transition-opacity" />
-              </button>
-              <button 
-                className="w-3.5 h-3.5 rounded-full bg-yellow-500/90 hover:bg-yellow-500 transition-colors"
-                onMouseDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
-              />
-              <button 
-                className="w-3.5 h-3.5 rounded-full bg-green-500/90 hover:bg-green-500 transition-colors" 
-                onMouseDown={(e) => e.stopPropagation()}
-                onTouchStart={(e) => e.stopPropagation()}
-              />
-            </div>
             <span className="text-sm font-medium text-white/80 select-none">{app}</span>
           </div>
+          <button 
+            onClick={onClose} 
+            className="w-6 h-6 rounded-md hover:bg-red-500/90 text-white/50 hover:text-white flex items-center justify-center transition-colors"
+            onMouseDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            <X size={14} />
+          </button>
         </div>
 
         {/* Window Content */}

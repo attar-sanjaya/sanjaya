@@ -37,36 +37,36 @@ const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick }) =
 );
 
 interface DockProps {
-  activeApp: string | null;
-  onAppChange: (app: string | null) => void;
+  activeApps: string[];
+  toggleApp: (app: string) => void;
 }
 
-const Dock: React.FC<DockProps> = ({ activeApp, onAppChange }) => {
+const Dock: React.FC<DockProps> = ({ activeApps, toggleApp }) => {
   return (
-    <div className="mb-2 flex items-end gap-0.5 px-2 pt-1.5 pb-1 bg-slate-900/40 backdrop-blur-3xl border border-slate-700/40 rounded-2xl shadow-2xl">
+    <div className="mb-2 flex items-end gap-0.5 px-2 pt-1 pb-1 bg-slate-900/40 backdrop-blur-3xl border border-slate-700/40 rounded-full shadow-2xl">
       <DockItem
-        icon={<Globe2 size={20} strokeWidth={1.5} />}
+        icon={<Globe2 size={18} strokeWidth={1.5} />}
         label="Mind"
-        isActive={activeApp === 'Mind'}
-        onClick={() => onAppChange(activeApp === 'Mind' ? null : 'Mind')}
+        isActive={activeApps.includes('Mind')}
+        onClick={() => toggleApp('Mind')}
       />
       <DockItem
-        icon={<Share2 size={20} strokeWidth={1.5} />}
+        icon={<Share2 size={18} strokeWidth={1.5} />}
         label="Network"
-        isActive={activeApp === 'Network'}
-        onClick={() => onAppChange(activeApp === 'Network' ? null : 'Network')}
+        isActive={activeApps.includes('Network')}
+        onClick={() => toggleApp('Network')}
       />
       <DockItem
-        icon={<StickyNote size={20} strokeWidth={1.5} />}
+        icon={<StickyNote size={18} strokeWidth={1.5} />}
         label="Notes"
-        isActive={activeApp === 'Notes'}
-        onClick={() => onAppChange(activeApp === 'Notes' ? null : 'Notes')}
+        isActive={activeApps.includes('Notes')}
+        onClick={() => toggleApp('Notes')}
       />
       <DockItem
-        icon={<CalendarDays size={20} strokeWidth={1.5} />}
+        icon={<CalendarDays size={18} strokeWidth={1.5} />}
         label="Calendar"
-        isActive={activeApp === 'Calendar'}
-        onClick={() => onAppChange(activeApp === 'Calendar' ? null : 'Calendar')}
+        isActive={activeApps.includes('Calendar')}
+        onClick={() => toggleApp('Calendar')}
       />
     </div>
   );

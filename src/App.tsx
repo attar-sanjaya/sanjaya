@@ -9,15 +9,17 @@ const BACKGROUNDS = [
 ];
 
 const App: React.FC = () => {
-  const [activeApp, setActiveApp] = useState<string | null>(null);
+  const [activeApps, setActiveApps] = useState<string[]>([]);
   const [bgIndex, setBgIndex] = useState(0);
 
   const toggleBackground = () => {
     setBgIndex((prev) => (prev + 1) % BACKGROUNDS.length);
   };
 
-  const toggleCalendar = () => {
-    setActiveApp((prev) => (prev === 'Calendar' ? null : 'Calendar'));
+  const toggleApp = (app: string) => {
+    setActiveApps((prev) => 
+      prev.includes(app) ? prev.filter(a => a !== app) : [...prev, app]
+    );
   };
 
   return (
@@ -31,20 +33,20 @@ const App: React.FC = () => {
       {/* Top Section */}
       <TopMenuBar 
         onToggleBackground={toggleBackground} 
-        onToggleCalendar={toggleCalendar}
-        isCalendarOpen={activeApp === 'Calendar'}
+        onToggleCalendar={() => toggleApp('Calendar')}
+        isCalendarOpen={activeApps.includes('Calendar')}
       />
 
-      {/* Center Section — empty for now or shows active app */}
-      <main className="flex-1 flex items-center justify-center w-full p-4 relative">
-        {activeApp && (
-          <AppWindow app={activeApp} onClose={() => setActiveApp(null)} />
-        )}
+      {/* Center Section — shows active apps */}
+      <main className="flex-1 flex items-center justify-center w-full p-4 relative pointer-events-none">
+        {activeApps.map(app => (
+          <AppWindow key={app} app={app} onClose={() => toggleApp(app)} />
+        ))}
       </main>
 
       {/* Bottom Section - Dock */}
-      <footer className="w-full flex justify-center pb-4">
-        <Dock activeApp={activeApp} onAppChange={setActiveApp} />
+      <footer className="w-full flex justify-center pb-2 z-50">
+        <Dock activeApps={activeApps} toggleApp={toggleApp} />
       </footer>
     </div>
   );
