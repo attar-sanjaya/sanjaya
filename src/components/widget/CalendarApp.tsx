@@ -94,8 +94,8 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
                     : isSelected
                     ? 'bg-brand text-slate-950 font-bold shadow-[0_0_15px_rgb(var(--brand-rgb)/0.8)] cursor-pointer scale-110'
                     : isToday
-                    ? 'border border-brand/40 text-brand font-bold cursor-pointer hover:bg-brand/10'
-                    : 'text-text-main/50 cursor-pointer hover:bg-text-main/5'
+                    ? 'border border-brand/40 text-brand font-bold cursor-pointer hover:bg-brand/10 hover:font-black'
+                    : 'text-text-main/50 cursor-pointer hover:bg-text-main/5 hover:text-text-main hover:font-black'
                 }`}
               >
                 {date}
