@@ -37,7 +37,7 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   const [messages, setMessages] = useState<Message[]>([
     { 
       role: 'assistant', 
-      content: 'Hello. I am **CORVUS**. My systems are online and ready to synchronize. \n\nTo fully calibrate my cognitive engines, I require a brief initialization sequence. Please share your **Name**, **Profession**, and **Primary Goals** for today.' 
+      content: 'Sistem CORVUS online. Kalibrasi kognitif siap dimulai.\n\nUntuk menyesuaikan antarmuka dan saran harian, mohon sebutkan Nama Anda, Profesi saat ini, dan Target utama hari ini.' 
     }
   ]);
   const [input, setInput] = useState('');
