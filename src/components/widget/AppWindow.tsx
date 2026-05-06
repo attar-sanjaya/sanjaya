@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Send, Terminal, Cpu } from 'lucide-react';
+import { X, Send, Terminal, Cpu, Mic } from 'lucide-react';
 import CalendarApp from './CalendarApp';
 
 interface Message {
@@ -44,7 +44,21 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const updateVoices = () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        setAvailableVoices(window.speechSynthesis.getVoices());
+      }
+    };
+    updateVoices();
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = updateVoices;
+    }
+  }, []);
 
   const windowRef = useRef<HTMLDivElement>(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
@@ -72,20 +86,94 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
     return { cleanText: cleanText.trim(), actions };
   }, []);
 
-  const handleSendMessage = async () => {
-    if (!input.trim() || isTyping) return;
+  const speakText = async (text: string) => {
+    // 1. Coba gunakan Puter.js (Free API untuk Neural/Generative TTS yang sangat natural)
+    try {
+      const puter = (window as any).puter;
+      if (puter && puter.ai) {
+        // Gunakan Gemini/Neural engine bawaan Puter jika tersedia
+        const audio = await puter.ai.txt2speech(text, {
+          language: "id-ID",
+          engine: "neural" // Menggunakan neural engine yang setara dengan ElevenLabs/AWS Polly premium
+        });
+        audio.play();
+        return; // Selesai jika berhasil
+      }
+    } catch (err) {
+      console.error("Puter TTS error, falling back to browser TTS:", err);
+    }
+
+    // 2. Fallback: Gunakan browser Web Speech API jika Puter.js gagal/terblokir
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      const currentVoices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
+      const idVoices = currentVoices.filter(v => v.lang.startsWith('id'));
+      
+      const selectedVoice = 
+        idVoices.find(v => v.name.includes('Natural') || v.name.includes('Online')) ||
+        idVoices.find(v => v.name.includes('Google')) ||
+        idVoices.find(v => v.name.includes('Premium') || v.name.includes('Enhanced')) ||
+        idVoices[0];
+        
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      } else {
+        utterance.lang = 'id-ID';
+      }
+
+      utterance.rate = 0.95;
+      utterance.pitch = 1.05;
+
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  const startListening = () => {
+    if (isListening) return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Browser ini tidak mendukung fitur pengenalan suara.");
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'id-ID';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onerror = (e: any) => {
+      console.error("Voice recognition error:", e.error);
+      setIsListening(false);
+    };
+    recognition.onend = () => setIsListening(false);
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(transcript);
+      handleSendMessage(transcript, true);
+    };
+
+    recognition.start();
+  };
+
+  const handleSendMessage = async (customTextOrEvent?: string | any, isVoice = false) => {
+    const textToSend = typeof customTextOrEvent === 'string' ? customTextOrEvent : input;
+    if (!textToSend.trim() || isTyping) return;
+
+    const useVoiceReply = isVoice;
 
     // Obfuscated to bypass GitHub Push Protection while keeping it internal to the system
     const apiKey = import.meta.env.VITE_GROQ_API_KEY || ("gsk_" + "A9VyufqigjPR4V5MsjrtWGdy" + "b3FYvJC5eB1x3iz1MCIyAIop68aa");
     
     if (!apiKey) {
-      setMessages(prev => [...prev, { role: 'user', content: input }]);
+      setMessages(prev => [...prev, { role: 'user', content: textToSend }]);
       setMessages(prev => [...prev, { role: 'assistant', content: '[SYSTEM ERROR]: API Key initialization failed.' }]);
       setInput('');
       return;
     }
 
-    const userMessage: Message = { role: 'user', content: input };
+    const userMessage: Message = { role: 'user', content: textToSend };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsTyping(true);
@@ -145,6 +233,10 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
 
       setMessages(prev => [...prev, { role: 'assistant', content: cleanText }]);
       actions.forEach(action => onExecuteAction?.(action));
+
+      if (useVoiceReply) {
+        speakText(cleanText);
+      }
 
     } catch (error: any) {
       setMessages(prev => [...prev, { role: 'assistant', content: `[ERROR]: ${error.message || 'CONNECTION_FAILED'}.` }]);
@@ -287,15 +379,25 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                   placeholder="Execute command..." 
-                  className="w-full bg-text-main/5 border border-text-main/10 rounded-xl pl-4 pr-12 py-3 text-sm text-text-main font-medium placeholder:text-text-main/20 focus:outline-none focus:border-brand/40 transition-all shadow-inner"
+                  className="w-full bg-text-main/5 border border-text-main/10 rounded-xl pl-4 pr-20 py-3 text-sm text-text-main font-medium placeholder:text-text-main/20 focus:outline-none focus:border-brand/40 transition-all shadow-inner"
                 />
-                <button 
-                  onClick={handleSendMessage}
-                  disabled={isTyping}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-text-main/20 hover:text-brand transition-colors disabled:opacity-30"
-                >
-                  <Send size={18} strokeWidth={2.5} />
-                </button>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  <button 
+                    onClick={() => startListening()}
+                    disabled={isTyping}
+                    className={`p-2 transition-colors rounded-lg ${isListening ? 'text-red-500 bg-red-500/10' : 'text-text-main/20 hover:text-brand'} disabled:opacity-30`}
+                    title="Voice Input"
+                  >
+                    <Mic size={18} strokeWidth={2.5} className={isListening ? 'animate-pulse' : ''} />
+                  </button>
+                  <button 
+                    onClick={() => handleSendMessage()}
+                    disabled={isTyping}
+                    className="p-2 text-text-main/20 hover:text-brand transition-colors disabled:opacity-30"
+                  >
+                    <Send size={18} strokeWidth={2.5} />
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
