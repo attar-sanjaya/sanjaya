@@ -1,17 +1,25 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Send } from 'lucide-react';
+import { X, Send, Terminal, Cpu } from 'lucide-react';
 import CalendarApp from './CalendarApp';
+
+interface Message {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
 
 interface AppWindowProps {
   app: string;
   index: number;
   onClose: () => void;
+  onExecuteAction?: (action: { command: string; payload: any }) => void;
 }
 
-const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
+const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAction }) => {
   const isCalendar = app === 'Calendar';
+  const isMind = app === 'Mind';
+  
   const initialWidth = isCalendar ? 320 : 600;
-  const initialHeight = isCalendar ? 360 : 400;
+  const initialHeight = isCalendar ? 360 : 450;
 
   const offset = index * 30;
   const initialX = typeof window !== 'undefined' ? Math.max(20, (window.innerWidth - initialWidth) / 2) + offset : 100 + offset;
@@ -23,9 +31,103 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
   const [isResizing, setIsResizing] = useState(false);
   const [resizeDir, setResizeDir] = useState<string | null>(null);
 
+  const [userContext] = useState({ name: 'UNKNOWN', profession: 'UNKNOWN', goals: 'UNKNOWN' });
+
+  const [messages, setMessages] = useState<Message[]>([
+    { 
+      role: 'assistant', 
+      content: '**Initialization Sequence Started**\n\nTo fully calibrate the C.O.R.V.U.S. system to your cognitive needs, I require some baseline data. Please provide your **Name**, **Profession**, and **Main Goals**.' 
+    }
+  ]);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
   const windowRef = useRef<HTMLDivElement>(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const resizeStartSize = useRef({ width: 0, height: 0, x: 0, y: 0 });
+
+  const scrollToBottom = () => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  useEffect(() => { if (isMind) scrollToBottom(); }, [messages, isTyping, isMind]);
+
+  // Parser to extract <ACTION> blocks
+  const parseActions = useCallback((text: string) => {
+    const actionRegex = /<ACTION>([\s\S]*?)<\/ACTION>/g;
+    const actions: any[] = [];
+    let cleanText = text;
+
+    let match;
+    while ((match = actionRegex.exec(text)) !== null) {
+      try {
+        const actionData = JSON.parse(match[1].trim());
+        actions.push(actionData);
+        cleanText = cleanText.replace(match[0], ''); // Remove from UI
+      } catch (e) {
+        console.error('[ACTION_PARSER_ERROR]: Failed to parse JSON', match[1]);
+      }
+    }
+
+    return { cleanText: cleanText.trim(), actions };
+  }, []);
+
+  const handleSendMessage = async () => {
+    if (!input.trim() || isTyping) return;
+
+    const userMessage: Message = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsTyping(true);
+
+    try {
+      const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+      if (!apiKey) throw new Error('API_KEY_NOT_FOUND');
+
+      const systemPrompt = `You are C.O.R.V.U.S. (Cognitive Orchestrator for Responsive Virtual Understanding and Synthesis).
+
+CORE IDENTITY: Elite, analytical virtual executive OS. Surgical precision. No em dashes.
+
+USER CONTEXT: Name: ${userContext.name}, Profession: ${userContext.profession}, Goals: ${userContext.goals}
+
+ACTION_PROTOCOL: 
+If the user wants to perform an action, append a JSON block inside <ACTION> tags.
+- To open a window: <ACTION>{"command": "OPEN_WINDOW", "payload": {"windowName": "CALENDAR" || "MIND"}}</ACTION>
+- To add an event: <ACTION>{"command": "ADD_EVENT", "payload": {"title": "...", "date": "YYYY-MM-DD", "time": "HH:mm"}}</ACTION>
+
+Example: "Opening your calendar now. <ACTION>{"command": "OPEN_WINDOW", "payload": {"windowName": "CALENDAR"}}</ACTION>"
+
+RULES: Use bullet points. Bold emphasis. Concise paragraphs. English only.`;
+
+      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'llama-3.3-70b-versatile',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            ...messages.slice(-6).map(m => ({ role: m.role, content: m.content })),
+            { role: 'user', content: userMessage.content }
+          ],
+          temperature: 0.7
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error.message);
+      
+      const rawContent = data.choices[0].message.content;
+      const { cleanText, actions } = parseActions(rawContent);
+
+      setMessages(prev => [...prev, { role: 'assistant', content: cleanText }]);
+
+      // Execute actions if any
+      actions.forEach(action => onExecuteAction?.(action));
+
+    } catch (error: any) {
+      setMessages(prev => [...prev, { role: 'assistant', content: `[ERROR]: ${error.message || 'CONNECTION_FAILED'}.` }]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
@@ -83,15 +185,14 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
       }}
       className={`flex flex-col group select-none pointer-events-auto ${isDragging ? 'scale-[1.01] shadow-[0_30px_70px_rgba(0,0,0,0.6)]' : 'shadow-[0_20px_50px_rgba(0,0,0,0.5)]'}`}
     >
+      {/* Resizers */}
       <div className="absolute inset-x-0 -top-1 h-2 cursor-ns-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'top')} />
       <div className="absolute inset-x-0 -bottom-1 h-2 cursor-ns-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'bottom')} />
       <div className="absolute inset-y-0 -left-1 w-2 cursor-ew-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'left')} />
       <div className="absolute inset-y-0 -right-1 w-2 cursor-ew-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'right')} />
       <div className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'bottomright')} />
 
-      <div className="w-full h-full bg-surface/50 backdrop-blur-2xl rounded-xl flex flex-col overflow-hidden border border-text-main/10 animate-in fade-in zoom-in duration-300">
-        
-        {/* Header with Display Font */}
+      <div className="w-full h-full bg-surface/50 backdrop-blur-3xl rounded-xl flex flex-col overflow-hidden border border-text-main/10 animate-in fade-in zoom-in duration-300">
         <div 
           onMouseDown={handleMouseDown}
           className="h-9 flex items-center justify-between px-3 bg-text-main/5 border-t border-text-main/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] cursor-grab active:cursor-grabbing hover:bg-text-main/10 transition-colors shrink-0 group/header"
@@ -111,29 +212,60 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-black/5 pointer-events-auto">
-          {app === 'Calendar' ? (
+        <div className="flex-1 overflow-hidden flex flex-col bg-black/10 pointer-events-auto">
+          {isCalendar ? (
              <CalendarApp onToggleExpand={(expanded) => setSize(prev => ({ ...prev, width: expanded ? 640 : 320 }))} />
-          ) : app === 'Mind' ? (
-            <div className="h-full flex flex-col justify-end p-4">
-              <div className="space-y-4 mb-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0 border border-brand/20 shadow-[0_0_10px_rgb(var(--brand-rgb)/0.2)]">
-                    <span className="text-brand text-xs font-black font-display">CR</span>
+          ) : isMind ? (
+            <div className="h-full flex flex-col p-4 font-label">
+              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 mb-4">
+                {messages.map((msg, i) => (
+                  <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
+                    <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border ${
+                        msg.role === 'user' ? 'bg-text-main/10 border-text-main/20' : 'bg-brand/10 border-brand/20 shadow-[0_0_10px_rgb(var(--brand-rgb)/0.2)]'
+                      }`}>
+                        {msg.role === 'user' ? <Terminal size={14} className="text-text-main/60" /> : <Cpu size={14} className="text-brand" />}
+                      </div>
+                      <div className={`px-4 py-2.5 rounded-2xl text-sm border backdrop-blur-md whitespace-pre-wrap ${
+                        msg.role === 'user'
+                          ? 'bg-text-main/5 border-text-main/10 rounded-tr-sm text-text-main/90'
+                          : 'bg-surface/30 border-text-main/5 rounded-tl-sm text-text-main/80 shadow-xl'
+                      }`}>
+                        {msg.content}
+                      </div>
+                    </div>
                   </div>
-                  <div className="bg-text-main/5 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-text-main/90 font-medium border border-text-main/10 backdrop-blur-md">
-                    Hello. I am CORVUS. How can I help you focus today?
+                ))}
+                {isTyping && (
+                  <div className="flex justify-start animate-pulse">
+                    <div className="flex gap-3 items-center">
+                      <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center border border-brand/20">
+                        <Cpu size={14} className="text-brand" />
+                      </div>
+                      <div className="text-[10px] font-black uppercase tracking-widest text-brand/60 font-mono">
+                        [SYNCHRONIZING...]
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
+                <div ref={chatEndRef} />
               </div>
+              
               <div className="relative mt-auto">
                 <input 
                   type="text" 
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
                   placeholder="Execute command..." 
-                  className="w-full bg-text-main/5 border border-text-main/10 rounded-xl pl-4 pr-10 py-2.5 text-sm text-text-main font-medium placeholder:text-text-main/20 focus:outline-none focus:border-brand/30 transition-all"
+                  className="w-full bg-text-main/5 border border-text-main/10 rounded-xl pl-4 pr-12 py-3 text-sm text-text-main font-medium placeholder:text-text-main/20 focus:outline-none focus:border-brand/40 transition-all shadow-inner"
                 />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-text-main/20 hover:text-brand transition-colors">
-                  <Send size={14} />
+                <button 
+                  onClick={handleSendMessage}
+                  disabled={isTyping}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-text-main/20 hover:text-brand transition-colors disabled:opacity-30"
+                >
+                  <Send size={18} strokeWidth={2.5} />
                 </button>
               </div>
             </div>
