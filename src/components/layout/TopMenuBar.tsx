@@ -20,7 +20,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onToggleBackground, onToggleCal
   return (
     <div className="w-full h-8 px-6 flex items-center justify-between glass-morphism border-t-0 border-x-0 bg-slate-900/40 backdrop-blur-md z-50">
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium tracking-wider text-white/90">Life OS</span>
+        <span className="text-sm font-medium tracking-wider text-white/90">CORVUS</span>
       </div>
       
       <div className="flex items-center gap-5 text-white/60">

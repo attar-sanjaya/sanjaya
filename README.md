@@ -1,4 +1,4 @@
-# Life OS Web
+# CORVUS Web
 
 A futuristic desktop UI built with React, TypeScript, and Tailwind CSS.
 
