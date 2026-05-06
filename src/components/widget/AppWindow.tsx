@@ -12,9 +12,10 @@ interface AppWindowProps {
   index: number;
   onClose: () => void;
   onExecuteAction?: (action: { command: string; payload: any }) => void;
+  activeEvent?: any;
 }
 
-const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAction }) => {
+const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAction, activeEvent }) => {
   const isCalendar = app === 'Calendar';
   const isMind = app === 'Mind';
   
@@ -97,7 +98,7 @@ USER CONTEXT: Name: ${userContext.name}, Profession: ${userContext.profession}, 
 ACTION_PROTOCOL: 
 If the user wants to perform an action, append a JSON block inside <ACTION> tags.
 - To open a window: <ACTION>{"command": "OPEN_WINDOW", "payload": {"windowName": "CALENDAR" || "MIND"}}</ACTION>
-- To add an event: <ACTION>{"command": "ADD_EVENT", "payload": {"title": "...", "date": "YYYY-MM-DD", "time": "HH:mm"}}</ACTION>
+- To add an event/reminder: <ACTION>{"command": "ADD_EVENT", "payload": {"title": "...", "date": "YYYY-MM-DD", "time": "HH:mm", "reminderTime": "HH:mm"}}</ACTION>
 
 RULES: Use bullet points. Bold emphasis. Concise paragraphs. English only.`;
 
@@ -216,7 +217,10 @@ RULES: Use bullet points. Bold emphasis. Concise paragraphs. English only.`;
 
         <div className="flex-1 overflow-hidden flex flex-col bg-black/10 pointer-events-auto relative">
           {isCalendar ? (
-             <CalendarApp onToggleExpand={(expanded) => setSize(prev => ({ ...prev, width: expanded ? 640 : 320 }))} />
+             <CalendarApp 
+               onToggleExpand={(expanded) => setSize(prev => ({ ...prev, width: expanded ? 640 : 320 }))} 
+               activeEvent={activeEvent}
+             />
           ) : isMind ? (
             <div className="h-full flex flex-col p-4 font-label">
               <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 mb-4">

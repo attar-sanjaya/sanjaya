@@ -25,6 +25,7 @@ const App: React.FC = () => {
   const [activeApps, setActiveApps] = useState<string[]>([]);
   const [bgIndex, setBgIndex] = useState(0);
   const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
+  const [activeEvent, setActiveEvent] = useState<any>(null);
 
   const currentBg = BACKGROUNDS[bgIndex];
 
@@ -60,12 +61,15 @@ const App: React.FC = () => {
         break;
       
       case 'ADD_EVENT':
-        setCalendarEvents(prev => [...prev, {
+        const newEvent = {
           id: Date.now(),
           title: action.payload.title,
-          date: action.payload.date,
-          time: action.payload.time
-        }]);
+          date: action.payload.date, // format YYYY-MM-DD
+          time: action.payload.time,
+          reminderTime: action.payload.reminderTime
+        };
+        setCalendarEvents(prev => [...prev, newEvent]);
+        setActiveEvent(newEvent);
         // Proactively open calendar to show the result
         toggleApp('Calendar', true);
         break;
@@ -101,6 +105,7 @@ const App: React.FC = () => {
             index={index} 
             onClose={() => toggleApp(app)} 
             onExecuteAction={executeAiAction}
+            activeEvent={app === 'Calendar' ? activeEvent : null}
           />
         ))}
       </main>

@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Bell, X, Calendar as CalendarIcon, Clock, AlignLeft } from 'lucide-react';
 
 interface CalendarAppProps {
   onToggleExpand?: (expanded: boolean) => void;
+  activeEvent?: any;
 }
 
-const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
+const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand, activeEvent }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -16,6 +17,28 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
   const [endTime, setEndTime] = useState('');
   const [notes, setNotes] = useState('');
   const [pushEnabled, setPushEnabled] = useState(false);
+  const [reminderTime, setReminderTime] = useState('');
+
+  useEffect(() => {
+    if (activeEvent) {
+      if (activeEvent.date) {
+        // Date comes in as YYYY-MM-DD
+        const [y, m, d] = activeEvent.date.split('-');
+        const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+        setCurrentDate(dateObj);
+        setSelectedDate(dateObj.getDate());
+      }
+      if (activeEvent.title) setTitle(activeEvent.title);
+      if (activeEvent.time) setStartTime(activeEvent.time);
+      if (activeEvent.reminderTime) {
+        setPushEnabled(true);
+        setReminderTime(activeEvent.reminderTime);
+      }
+      
+      setIsExpanded(true);
+      onToggleExpand?.(true);
+    }
+  }, [activeEvent]);
 
   const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
@@ -168,17 +191,29 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
               />
             </div>
 
-            <div className="flex items-center justify-between p-2 bg-text-main/5 rounded-md border border-text-main/5">
-              <div className="flex items-center gap-2">
-                <Bell size={10} className={pushEnabled ? "text-brand animate-pulse" : "text-text-main/10"} />
-                <span className="text-[8px] font-black text-text-main/30 uppercase tracking-tighter font-label">Push_Reminder</span>
+            <div className="flex flex-col gap-1.5 p-2 bg-text-main/5 rounded-md border border-text-main/5 transition-all">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Bell size={10} className={pushEnabled ? "text-brand animate-pulse" : "text-text-main/10"} />
+                  <span className="text-[8px] font-black text-text-main/30 uppercase tracking-tighter font-label">Push_Reminder</span>
+                </div>
+                <button 
+                  onClick={() => setPushEnabled(!pushEnabled)}
+                  className={`w-6 h-3 rounded-full p-0.5 transition-colors focus:outline-none ${pushEnabled ? 'bg-brand' : 'bg-text-main/10'}`}
+                >
+                  <div className={`w-2 h-2 bg-white rounded-full transition-transform ${pushEnabled ? 'translate-x-2.5' : 'translate-x-0'}`} />
+                </button>
               </div>
-              <button 
-                onClick={() => setPushEnabled(!pushEnabled)}
-                className={`w-6 h-3 rounded-full p-0.5 transition-colors focus:outline-none ${pushEnabled ? 'bg-brand' : 'bg-text-main/10'}`}
-              >
-                <div className={`w-2 h-2 bg-white rounded-full transition-transform ${pushEnabled ? 'translate-x-2.5' : 'translate-x-0'}`} />
-              </button>
+              {pushEnabled && (
+                <div className="flex items-center gap-2 mt-0.5 border-t border-text-main/5 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <Clock size={8} className="text-brand/40" />
+                  <span className="text-[7px] font-black text-text-main/20 uppercase tracking-widest font-label w-8">Time</span>
+                  <input 
+                    type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)}
+                    className="flex-1 bg-text-main/5 border border-text-main/5 rounded px-1.5 py-0.5 text-[9px] text-brand focus:outline-none focus:border-brand/40 [color-scheme:dark] font-black font-mono"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
