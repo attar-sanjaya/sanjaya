@@ -5,9 +5,10 @@ interface CalendarAppProps {
   onToggleExpand?: (expanded: boolean) => void;
   activeEvent?: any;
   calendarEvents?: any[];
+  onAddEvent?: (eventData: any) => void;
 }
 
-const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand, activeEvent, calendarEvents = [] }) => {
+const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand, activeEvent, calendarEvents = [], onAddEvent }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -84,11 +85,28 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand, activeEvent, 
   };
 
   const handleSave = async () => {
+    if (!title || selectedDate === null) return;
+    
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1200));
+    
+    // Format date as YYYY-MM-DD
+    const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
+    
+    onAddEvent?.({
+      title,
+      date: formattedDate,
+      time: startTime,
+      notes,
+      reminderTime: pushEnabled ? reminderTime : undefined
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 800)); // Simulate saving
+    
     setIsLoading(false);
-    toggleExpand();
-    setTitle(''); setStartTime(''); setEndTime(''); setNotes('');
+    setTitle(''); setStartTime(''); setEndTime(''); setNotes(''); setPushEnabled(false); setReminderTime('');
+    
+    // Switch to agenda view to show the newly added event
+    setViewMode('agenda');
   };
 
   return (

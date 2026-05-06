@@ -47,6 +47,10 @@ const App: React.FC = () => {
     });
   }, []);
 
+  const addManualEvent = useCallback((eventData: any) => {
+    setCalendarEvents(prev => [...prev, { id: Date.now(), ...eventData }]);
+  }, []);
+
   // Execution Hub for AI Actions
   const executeAiAction = useCallback((action: { command: string; payload: any }) => {
     console.log('[CORVUS_EXECUTION_HUB]: Received Command', action);
@@ -107,6 +111,7 @@ const App: React.FC = () => {
             onExecuteAction={executeAiAction}
             activeEvent={app === 'Calendar' ? activeEvent : null}
             calendarEvents={calendarEvents}
+            onAddEvent={addManualEvent}
           />
         ))}
       </main>
