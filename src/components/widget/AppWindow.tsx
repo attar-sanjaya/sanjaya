@@ -134,7 +134,14 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
         {/* Window Content */}
         <div className="flex-1 overflow-y-auto bg-black/20 pointer-events-auto">
           {app === 'Calendar' ? (
-             <CalendarApp />
+             <CalendarApp 
+               onToggleExpand={(expanded) => {
+                 setSize(prev => ({ 
+                   ...prev, 
+                   width: expanded ? 640 : 320 
+                 }));
+               }} 
+             />
           ) : app === 'Mind' ? (
             <div className="h-full flex flex-col justify-end p-4">
               <div className="space-y-4 mb-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
