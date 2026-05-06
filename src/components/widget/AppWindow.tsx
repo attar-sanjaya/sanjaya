@@ -47,15 +47,18 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   const [isListening, setIsListening] = useState(false);
   const [voiceMode, setVoiceMode] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const chatEndRef = useRef<HTMLDivElement>(null);
 
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const windowRef = useRef<HTMLDivElement>(null);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const resizeStartSize = useRef({ width: 0, height: 0, x: 0, y: 0 });
   const voiceModeRef = useRef(false);
   const abortSpeechRef = useRef(false);
   const recognitionRef = useRef<any>(null);
+  const isPushingRef = useRef(false); // Track push-to-talk state
 
-  useEffect(() => {
-    voiceModeRef.current = voiceMode;
-  }, [voiceMode]);
+  useEffect(() => { voiceModeRef.current = voiceMode; }, [voiceMode]);
 
   useEffect(() => {
     const updateVoices = () => {
@@ -69,12 +72,42 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
     }
   }, []);
 
-  const windowRef = useRef<HTMLDivElement>(null);
-  const dragStartPos = useRef({ x: 0, y: 0 });
-  const resizeStartSize = useRef({ width: 0, height: 0, x: 0, y: 0 });
-
   const scrollToBottom = () => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   useEffect(() => { if (isMind) scrollToBottom(); }, [messages, isTyping, isMind]);
+
+  // Auto-resize textarea as user types
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+    }
+  }, [input]);
+
+  // Spacebar push-to-talk (only when voice mode is on and focus isn't in textarea)
+  useEffect(() => {
+    if (!voiceMode) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && e.target === document.body && !isPushingRef.current) {
+        e.preventDefault();
+        isPushingRef.current = true;
+        startPushToTalk();
+      }
+    };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && isPushingRef.current) {
+        isPushingRef.current = false;
+        stopPushToTalk();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [voiceMode]);
 
   const parseActions = useCallback((text: string) => {
     const actionRegex = /<ACTION>([\s\S]*?)<\/ACTION>/g;
@@ -99,53 +132,36 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       abortSpeechRef.current = false;
-      (window as any).utterances = []; // Hack: Mencegah Chrome mematikan suara tiba-tiba (Garbage Collection bug)
+      (window as any).utterances = [];
       
       const currentVoices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
       const idVoices = currentVoices.filter(v => v.lang.includes('id') || v.lang.includes('ID'));
       
-      // Prioritaskan suara Neural/Premium bawaan browser/OS (Edge/Google/Apple)
       const selectedVoice = 
         idVoices.find(v => v.name.includes('Natural') || v.name.includes('Online')) ||
         idVoices.find(v => v.name.includes('Google')) ||
         idVoices.find(v => v.name.includes('Damayanti') || v.name.includes('Premium')) ||
         idVoices[0];
 
-      // Hack 2: Memecah teks menjadi potongan kecil per tanda baca agar tidak terpotong di tengah jalan
       const chunks = text.match(/[^.!?\n]+[.!?\n]*/g) || [text];
       const cleanSentences = chunks.map(s => s.trim()).filter(s => s.length > 0);
-      
       let currentIndex = 0;
 
       const speakNextChunk = () => {
-        if (abortSpeechRef.current) return; // Hentikan jika user menekan tombol mati
-        
-        if (currentIndex >= cleanSentences.length) {
-          if (voiceModeRef.current) startListening();
-          return;
-        }
+        if (abortSpeechRef.current) return;
+        if (currentIndex >= cleanSentences.length) return;
 
         const utterance = new SpeechSynthesisUtterance(cleanSentences[currentIndex]);
-        (window as any).utterances.push(utterance); // Simpan referensi agar tidak di-GC browser
+        (window as any).utterances.push(utterance);
         
-        if (selectedVoice) {
-          utterance.voice = selectedVoice;
-        } else {
-          utterance.lang = 'id-ID';
-        }
+        if (selectedVoice) { utterance.voice = selectedVoice; }
+        else { utterance.lang = 'id-ID'; }
 
         utterance.rate = 0.95;
         utterance.pitch = 1.05;
 
-        utterance.onend = () => {
-          currentIndex++;
-          speakNextChunk();
-        };
-
-        utterance.onerror = () => {
-          currentIndex++;
-          speakNextChunk();
-        };
+        utterance.onend = () => { currentIndex++; speakNextChunk(); };
+        utterance.onerror = () => { currentIndex++; speakNextChunk(); };
 
         window.speechSynthesis.speak(utterance);
       };
@@ -157,27 +173,28 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   const stopListening = () => {
     if (recognitionRef.current) {
       try { recognitionRef.current.stop(); } catch (e) {}
+      recognitionRef.current = null;
     }
     setIsListening(false);
   };
 
-  const startListening = () => {
+  // Push-to-talk: call on press
+  const startPushToTalk = () => {
     if (isListening) return;
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert("Browser ini tidak mendukung fitur pengenalan suara.");
-      setVoiceMode(false);
-      return;
-    }
+    window.speechSynthesis.cancel(); // Stop AI from speaking when user wants to talk
     
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
+
     const recognition = new SpeechRecognition();
     recognition.lang = 'id-ID';
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
+    recognition.continuous = false;
 
     recognition.onstart = () => setIsListening(true);
     recognition.onerror = (e: any) => {
-      console.error("Voice recognition error:", e.error);
+      console.error('STT error:', e.error);
       setIsListening(false);
       if (e.error === 'not-allowed') setVoiceMode(false);
     };
@@ -191,8 +208,13 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
     try {
       recognition.start();
       recognitionRef.current = recognition;
-    } catch (e) {
-      console.error(e);
+    } catch (e) { console.error(e); }
+  };
+
+  // Push-to-talk: call on release — stop listening, let onresult fire
+  const stopPushToTalk = () => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch (e) {}
     }
   };
 
@@ -200,7 +222,6 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
     if (!voiceMode) {
       abortSpeechRef.current = false;
       setVoiceMode(true);
-      startListening();
     } else {
       abortSpeechRef.current = true;
       setVoiceMode(false);
@@ -229,9 +250,15 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
     const userMessage: Message = { role: 'user', content: textToSend };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
     setIsTyping(true);
 
     try {
+      // Voice mode gets a special addendum: jawab singkat dan natural
+      const voiceModeInstruction = useVoiceReply
+        ? `\n\nVOICE_MODE ACTIVE: The user is speaking to you via voice. Keep your reply SHORT, NATURAL, and CONVERSATIONAL — maximum 2-3 sentences, as if you are talking, not writing. No lists, no structured formatting. Just speak naturally.`
+        : '';
+
       const systemPrompt = `You are C.O.R.V.U.S. (Cognitive Orchestrator for Responsive Virtual Understanding and Synthesis). You are the central intelligence of a high-end Life OS.
 
 Your current authenticated user context:
@@ -262,7 +289,7 @@ CRITICAL FORMATTING RULES:
 ACTION_PROTOCOL: 
 If the user wants to perform an action, append a JSON block inside <ACTION> tags.
 - To open a window: <ACTION>{"command": "OPEN_WINDOW", "payload": {"windowName": "CALENDAR" || "MIND"}}</ACTION>
-- To add an event/reminder: <ACTION>{"command": "ADD_EVENT", "payload": {"title": "...", "date": "YYYY-MM-DD", "time": "HH:mm", "reminderTime": "HH:mm"}}</ACTION>`;
+- To add an event/reminder: <ACTION>{"command": "ADD_EVENT", "payload": {"title": "...", "date": "YYYY-MM-DD", "time": "HH:mm", "reminderTime": "HH:mm"}}</ACTION>${voiceModeInstruction}`;
 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
@@ -391,6 +418,7 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
              />
           ) : isMind ? (
             <div className="h-full flex flex-col p-4 font-label">
+              {/* Messages */}
               <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 mb-4">
                 {messages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
@@ -425,36 +453,90 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
                 <div ref={chatEndRef} />
               </div>
               
-              <div className="relative mt-auto">
-                <input 
-                  type="text" 
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Execute command..." 
-                  className="w-full bg-text-main/5 border border-text-main/10 rounded-xl pl-4 pr-20 py-3 text-sm text-text-main font-medium placeholder:text-text-main/20 focus:outline-none focus:border-brand/40 transition-all shadow-inner"
-                />
-                <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                  <button 
-                    onClick={toggleVoiceMode}
-                    className={`p-2 transition-colors rounded-lg ${voiceMode ? 'text-red-500 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'text-text-main/20 hover:text-brand'}`}
-                    title={voiceMode ? "Voice Mode ON (Click to turn off)" : "Voice Mode OFF (Click to turn on)"}
-                  >
-                    {voiceMode ? (
-                      <Mic size={18} strokeWidth={2.5} className={isListening ? 'animate-pulse' : ''} />
-                    ) : (
-                      <MicOff size={18} strokeWidth={2.5} />
-                    )}
-                  </button>
-                  <button 
-                    onClick={() => handleSendMessage()}
+              {/* Bottom Input Area */}
+              {voiceMode ? (
+                /* ── VOICE MODE UI: Push-to-talk center button ── */
+                <div className="flex flex-col items-center justify-center gap-3 py-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                  {/* Mode indicator */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-black uppercase tracking-[0.25em] text-brand/50 font-mono">
+                      {isListening ? '[ LISTENING... ]' : isTyping ? '[ PROCESSING... ]' : '[ HOLD TO SPEAK ]'}
+                    </span>
+                  </div>
+
+                  {/* Big Push-to-Talk button */}
+                  <button
+                    onMouseDown={() => { isPushingRef.current = true; startPushToTalk(); }}
+                    onMouseUp={() => { isPushingRef.current = false; stopPushToTalk(); }}
+                    onMouseLeave={() => { if (isPushingRef.current) { isPushingRef.current = false; stopPushToTalk(); } }}
+                    onTouchStart={(e) => { e.preventDefault(); isPushingRef.current = true; startPushToTalk(); }}
+                    onTouchEnd={() => { isPushingRef.current = false; stopPushToTalk(); }}
                     disabled={isTyping}
-                    className="p-2 text-text-main/20 hover:text-brand transition-colors disabled:opacity-30"
+                    className={`
+                      w-20 h-20 rounded-full flex items-center justify-center transition-all duration-150 select-none
+                      ${isListening
+                        ? 'bg-red-500 shadow-[0_0_40px_rgba(239,68,68,0.8)] scale-110'
+                        : 'bg-brand/20 border-2 border-brand/40 hover:bg-brand/30 hover:border-brand/70 hover:scale-105 active:scale-95 shadow-[0_0_20px_rgb(var(--brand-rgb)/0.3)]'
+                      }
+                      disabled:opacity-30 disabled:cursor-not-allowed
+                    `}
                   >
-                    <Send size={18} strokeWidth={2.5} />
+                    <Mic
+                      size={32}
+                      strokeWidth={2}
+                      className={isListening ? 'text-white animate-pulse' : 'text-brand'}
+                    />
+                  </button>
+
+                  <span className="text-[8px] text-text-main/20 font-mono">or hold SPACE</span>
+
+                  {/* Exit voice mode button */}
+                  <button
+                    onClick={toggleVoiceMode}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-text-main/10 text-text-main/30 hover:text-text-main/70 hover:border-text-main/30 transition-all text-[9px] font-black uppercase tracking-widest"
+                  >
+                    <MicOff size={10} />
+                    Exit Voice
                   </button>
                 </div>
-              </div>
+              ) : (
+                /* ── CHAT MODE UI: Textarea + buttons ── */
+                <div className="relative mt-auto animate-in fade-in duration-200">
+                  <textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Execute command... (Shift+Enter for new line)"
+                    rows={1}
+                    className="w-full bg-text-main/5 border border-text-main/10 rounded-xl pl-4 pr-20 py-3 text-sm text-text-main font-medium placeholder:text-text-main/20 focus:outline-none focus:border-brand/40 transition-all shadow-inner resize-none overflow-y-auto"
+                    style={{ maxHeight: '120px' }}
+                  />
+                  <div className="absolute right-2 bottom-2 flex items-center gap-1">
+                    {/* Toggle to voice mode */}
+                    <button
+                      onClick={toggleVoiceMode}
+                      className="p-2 text-text-main/20 hover:text-brand transition-colors rounded-lg"
+                      title="Switch to Voice Mode"
+                    >
+                      <MicOff size={16} strokeWidth={2.5} />
+                    </button>
+                    {/* Send */}
+                    <button
+                      onClick={() => handleSendMessage()}
+                      disabled={isTyping}
+                      className="p-2 text-text-main/20 hover:text-brand transition-colors disabled:opacity-30"
+                    >
+                      <Send size={16} strokeWidth={2.5} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-text-main/10 p-4">
