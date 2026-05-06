@@ -10,8 +10,8 @@ interface AppWindowProps {
 
 const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
   const isCalendar = app === 'Calendar';
-  const initialWidth = isCalendar ? 384 : 600;
-  const initialHeight = isCalendar ? 440 : 400;
+  const initialWidth = isCalendar ? 320 : 600;
+  const initialHeight = isCalendar ? 360 : 400;
 
   // Staggered initial position
   const offset = index * 30;

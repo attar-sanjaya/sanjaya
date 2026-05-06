@@ -27,9 +27,9 @@ const CalendarApp: React.FC = () => {
   const isCurrentMonth = today.getFullYear() === year && today.getMonth() === month;
 
   return (
-    <div className="h-full w-full flex flex-col p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-white/90">
+    <div className="h-full w-full flex flex-col p-4">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-base font-semibold text-white/90">
           {monthNames[month]} {year}
         </h3>
         <div className="flex gap-2">
@@ -52,16 +52,16 @@ const CalendarApp: React.FC = () => {
           <div key={day} className="text-white/40 font-medium">{day}</div>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-y-3 gap-x-2 text-center text-sm">
+      <div className="grid grid-cols-7 gap-y-2 gap-x-1 text-center text-sm">
         {blanks.map(blank => (
-          <div key={`blank-${blank}`} className="w-8 h-8" />
+          <div key={`blank-${blank}`} className="w-7 h-7" />
         ))}
         {days.map(date => {
           const isToday = isCurrentMonth && date === today.getDate();
           return (
             <div 
               key={date} 
-              className={`w-8 h-8 flex items-center justify-center rounded-full mx-auto cursor-pointer transition-colors ${
+              className={`w-7 h-7 flex items-center justify-center rounded-full mx-auto cursor-pointer transition-colors ${
                 isToday 
                   ? 'bg-cyan-500 text-slate-900 font-bold shadow-[0_0_10px_rgba(6,182,212,0.5)]' 
                   : 'text-white/70 hover:bg-white/15'
