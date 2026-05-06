@@ -33,10 +33,11 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
 
   const [userContext] = useState({ name: 'UNKNOWN', profession: 'UNKNOWN', goals: 'UNKNOWN' });
 
+  // Humanized Initialization Message
   const [messages, setMessages] = useState<Message[]>([
     { 
       role: 'assistant', 
-      content: '**Initialization Sequence Started**\n\nTo fully calibrate the C.O.R.V.U.S. system to your cognitive needs, I require some baseline data. Please provide your **Name**, **Profession**, and **Main Goals**.' 
+      content: 'Hello. I am **CORVUS**. My systems are online and ready to synchronize. \n\nTo fully calibrate my cognitive engines to your specific needs, I require a brief initialization sequence. Please share your **Name**, **Profession**, and **Primary Goals** for today. Once locked in, we can begin.' 
     }
   ]);
   const [input, setInput] = useState('');
@@ -50,7 +51,6 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   const scrollToBottom = () => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   useEffect(() => { if (isMind) scrollToBottom(); }, [messages, isTyping, isMind]);
 
-  // Parser to extract <ACTION> blocks
   const parseActions = useCallback((text: string) => {
     const actionRegex = /<ACTION>([\s\S]*?)<\/ACTION>/g;
     const actions: any[] = [];
@@ -61,9 +61,9 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
       try {
         const actionData = JSON.parse(match[1].trim());
         actions.push(actionData);
-        cleanText = cleanText.replace(match[0], ''); // Remove from UI
+        cleanText = cleanText.replace(match[0], '');
       } catch (e) {
-        console.error('[ACTION_PARSER_ERROR]: Failed to parse JSON', match[1]);
+        console.error('[ACTION_PARSER_ERROR]', match[1]);
       }
     }
 
@@ -80,8 +80,8 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
 
     try {
       const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-      if (!apiKey) throw new Error('API_KEY_NOT_FOUND');
-
+      if (!apiKey) throw new Error('API_KEY_NOT_FOUND. Configure VITE_GROQ_API_KEY in Cloudflare.');
+      
       const systemPrompt = `You are C.O.R.V.U.S. (Cognitive Orchestrator for Responsive Virtual Understanding and Synthesis).
 
 CORE IDENTITY: Elite, analytical virtual executive OS. Surgical precision. No em dashes.
@@ -92,8 +92,6 @@ ACTION_PROTOCOL:
 If the user wants to perform an action, append a JSON block inside <ACTION> tags.
 - To open a window: <ACTION>{"command": "OPEN_WINDOW", "payload": {"windowName": "CALENDAR" || "MIND"}}</ACTION>
 - To add an event: <ACTION>{"command": "ADD_EVENT", "payload": {"title": "...", "date": "YYYY-MM-DD", "time": "HH:mm"}}</ACTION>
-
-Example: "Opening your calendar now. <ACTION>{"command": "OPEN_WINDOW", "payload": {"windowName": "CALENDAR"}}</ACTION>"
 
 RULES: Use bullet points. Bold emphasis. Concise paragraphs. English only.`;
 
@@ -118,8 +116,6 @@ RULES: Use bullet points. Bold emphasis. Concise paragraphs. English only.`;
       const { cleanText, actions } = parseActions(rawContent);
 
       setMessages(prev => [...prev, { role: 'assistant', content: cleanText }]);
-
-      // Execute actions if any
       actions.forEach(action => onExecuteAction?.(action));
 
     } catch (error: any) {
@@ -185,7 +181,6 @@ RULES: Use bullet points. Bold emphasis. Concise paragraphs. English only.`;
       }}
       className={`flex flex-col group select-none pointer-events-auto ${isDragging ? 'scale-[1.01] shadow-[0_30px_70px_rgba(0,0,0,0.6)]' : 'shadow-[0_20px_50px_rgba(0,0,0,0.5)]'}`}
     >
-      {/* Resizers */}
       <div className="absolute inset-x-0 -top-1 h-2 cursor-ns-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'top')} />
       <div className="absolute inset-x-0 -bottom-1 h-2 cursor-ns-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'bottom')} />
       <div className="absolute inset-y-0 -left-1 w-2 cursor-ew-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'left')} />
