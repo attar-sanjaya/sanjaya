@@ -7,8 +7,9 @@ export default {
   theme: {
     extend: {
       colors: {
-        'glass-dark': 'rgba(15, 23, 42, 0.4)',
         brand: 'rgb(var(--brand-rgb) / <alpha-value>)',
+        surface: 'rgb(var(--surface-rgb) / <alpha-value>)',
+        'text-main': 'rgb(var(--text-rgb) / <alpha-value>)',
       },
       backdropBlur: {
         'xs': '2px',

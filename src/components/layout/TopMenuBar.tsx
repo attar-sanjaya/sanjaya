@@ -1,21 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, Image as ImageIcon, Palette } from 'lucide-react';
+import { Calendar, Clock, Image as ImageIcon } from 'lucide-react';
 
 interface TopMenuBarProps {
   onToggleBackground?: () => void;
-  onToggleVibe?: () => void;
-  vibeName?: string;
   onToggleCalendar?: () => void;
   isCalendarOpen?: boolean;
 }
 
-const TopMenuBar: React.FC<TopMenuBarProps> = ({ 
-  onToggleBackground, 
-  onToggleVibe, 
-  vibeName,
-  onToggleCalendar, 
-  isCalendarOpen 
-}) => {
+const TopMenuBar: React.FC<TopMenuBarProps> = ({ onToggleBackground, onToggleCalendar, isCalendarOpen }) => {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -26,12 +18,12 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({
   const formattedTime = time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="w-full h-8 px-6 flex items-center justify-between glass-morphism border-t-0 border-x-0 bg-slate-900/40 backdrop-blur-md z-50">
+    <div className="w-full h-8 px-6 flex items-center justify-between bg-surface/40 backdrop-blur-2xl border-b border-text-main/5 z-50">
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium tracking-wider text-white/90">CORVUS</span>
+        <span className="text-sm font-medium tracking-wider text-text-main/90">CORVUS</span>
       </div>
       
-      <div className="flex items-center gap-5 text-white/60">
+      <div className="flex items-center gap-5 text-text-main/60">
         {onToggleBackground && (
           <button 
             onClick={onToggleBackground}
@@ -42,21 +34,10 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({
           </button>
         )}
         
-        {onToggleVibe && (
-          <button 
-            onClick={onToggleVibe}
-            className="hover:text-brand cursor-pointer transition-colors focus:outline-none flex items-center gap-1.5 group"
-            title={`Current Vibe: ${vibeName}`}
-          >
-            <Palette size={14} />
-            <span className="text-[10px] font-bold uppercase tracking-widest hidden group-hover:inline transition-all">{vibeName}</span>
-          </button>
-        )}
-
         {onToggleCalendar && (
           <button 
             onClick={onToggleCalendar} 
-            className={`focus:outline-none transition-colors ${isCalendarOpen ? 'text-brand' : 'text-white/60 hover:text-brand'}`}
+            className={`focus:outline-none transition-colors ${isCalendarOpen ? 'text-brand' : 'text-text-main/60 hover:text-brand'}`}
             title="Toggle Calendar"
           >
             <Calendar size={14} />
@@ -64,7 +45,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({
         )}
         <div className="flex items-center gap-2 ml-1">
           <Clock size={14} />
-          <span className="text-[12px] font-medium tracking-tight text-white/80">{formattedTime}</span>
+          <span className="text-[12px] font-medium tracking-tight text-text-main/80">{formattedTime}</span>
         </div>
       </div>
     </div>

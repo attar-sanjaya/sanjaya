@@ -29,30 +29,19 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     setIsDragging(true);
-    dragStartPos.current = {
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    };
+    dragStartPos.current = { x: e.clientX - position.x, y: e.clientY - position.y };
   };
 
   const handleResizeStart = (e: React.MouseEvent, dir: string) => {
     e.stopPropagation();
     setIsResizing(true);
     setResizeDir(dir);
-    resizeStartSize.current = {
-      width: size.width,
-      height: size.height,
-      x: e.clientX,
-      y: e.clientY
-    };
+    resizeStartSize.current = { width: size.width, height: size.height, x: e.clientX, y: e.clientY };
   };
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (isDragging) {
-      setPosition({
-        x: e.clientX - dragStartPos.current.x,
-        y: e.clientY - dragStartPos.current.y
-      });
+      setPosition({ x: e.clientX - dragStartPos.current.x, y: e.clientY - dragStartPos.current.y });
     } else if (isResizing && resizeDir) {
       const deltaX = e.clientX - resizeStartSize.current.x;
       const deltaY = e.clientY - resizeStartSize.current.y;
@@ -94,42 +83,39 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
       }}
       className={`flex flex-col group select-none pointer-events-auto ${isDragging ? 'scale-[1.01] shadow-[0_30px_70px_rgba(0,0,0,0.6)]' : 'shadow-[0_20px_50px_rgba(0,0,0,0.5)]'}`}
     >
+      {/* Resizers */}
       <div className="absolute inset-x-0 -top-1 h-2 cursor-ns-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'top')} />
       <div className="absolute inset-x-0 -bottom-1 h-2 cursor-ns-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'bottom')} />
       <div className="absolute inset-y-0 -left-1 w-2 cursor-ew-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'left')} />
       <div className="absolute inset-y-0 -right-1 w-2 cursor-ew-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'right')} />
       <div className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'bottomright')} />
 
-      {/* Main Panel: Dark Glassmorphism */}
-      <div className="w-full h-full bg-slate-900/50 backdrop-blur-xl rounded-xl flex flex-col overflow-hidden border border-slate-700/50 animate-in fade-in zoom-in duration-300">
+      {/* Main Panel: Dynamic Surface */}
+      <div className="w-full h-full bg-surface/50 backdrop-blur-2xl rounded-xl flex flex-col overflow-hidden border border-text-main/10 animate-in fade-in zoom-in duration-300">
         
-        {/* Window Header: Cyber-Neumorphism */}
+        {/* Header: Dynamic Colors */}
         <div 
           onMouseDown={handleMouseDown}
-          className="h-9 flex items-center justify-between px-3 bg-white/5 border-t border-slate-600/50 shadow-[inset_0_1px_2px_rgba(255,255,255,0.05)] cursor-grab active:cursor-grabbing hover:bg-white/10 transition-colors shrink-0 group/header"
+          className="h-9 flex items-center justify-between px-3 bg-text-main/5 border-t border-text-main/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] cursor-grab active:cursor-grabbing hover:bg-text-main/10 transition-colors shrink-0 group/header"
         >
           <div className="flex items-center gap-2">
-            <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isDragging ? 'bg-brand' : 'bg-white/20 group-hover/header:bg-brand/50'}`} />
-            <span className="text-[10px] font-bold tracking-[0.15em] text-white/40 uppercase select-none">{app}</span>
+            <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isDragging ? 'bg-brand' : 'bg-text-main/20 group-hover/header:bg-brand/50'}`} />
+            <span className="text-[10px] font-bold tracking-[0.15em] text-text-main/40 uppercase">{app}</span>
           </div>
           <div className="flex items-center gap-1">
             <button 
               onClick={(e) => { e.stopPropagation(); onClose(); }}
               onMouseDown={(e) => e.stopPropagation()}
-              className="w-5 h-5 rounded hover:bg-red-500/80 text-white/20 hover:text-white flex items-center justify-center transition-all"
+              className="w-5 h-5 rounded hover:bg-red-500/80 text-text-main/20 hover:text-white flex items-center justify-center transition-all"
             >
               <X size={10} />
             </button>
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto bg-black/10 pointer-events-auto">
+        <div className="flex-1 overflow-y-auto bg-black/5 pointer-events-auto">
           {app === 'Calendar' ? (
-             <CalendarApp 
-               onToggleExpand={(expanded) => {
-                 setSize(prev => ({ ...prev, width: expanded ? 640 : 320 }));
-               }} 
-             />
+             <CalendarApp onToggleExpand={(expanded) => setSize(prev => ({ ...prev, width: expanded ? 640 : 320 }))} />
           ) : app === 'Mind' ? (
             <div className="h-full flex flex-col justify-end p-4">
               <div className="space-y-4 mb-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
@@ -137,7 +123,7 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
                   <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0 border border-brand/20 shadow-[0_0_10px_rgb(var(--brand-rgb)/0.2)]">
                     <span className="text-brand text-xs font-bold">CR</span>
                   </div>
-                  <div className="bg-white/5 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-white/80 border border-white/5 backdrop-blur-md">
+                  <div className="bg-text-main/5 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-text-main/80 border border-text-main/5 backdrop-blur-md">
                     Hello. I am CORVUS. How can I help you focus today?
                   </div>
                 </div>
@@ -146,15 +132,15 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
                 <input 
                   type="text" 
                   placeholder="Execute command..." 
-                  className="w-full bg-black/40 border border-white/5 rounded-xl pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-brand/30 transition-all placeholder:text-white/10"
+                  className="w-full bg-text-main/5 border border-text-main/10 rounded-xl pl-4 pr-10 py-2.5 text-sm text-text-main placeholder:text-text-main/20 focus:outline-none focus:border-brand/30 transition-all"
                 />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/20 hover:text-brand transition-colors">
+                <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-text-main/20 hover:text-brand transition-colors">
                   <Send size={14} />
                 </button>
               </div>
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center text-white/10 p-4">
+            <div className="h-full flex items-center justify-center text-text-main/10 p-4">
               <p className="text-[10px] tracking-[0.2em] uppercase">{app} module offline</p>
             </div>
           )}
