@@ -5,7 +5,11 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Plus Jakarta Sans', 'sans-serif'],
+        label: ['Manrope', 'sans-serif'],
+      },
       colors: {
         brand: 'rgb(var(--brand-rgb) / <alpha-value>)',
         surface: 'rgb(var(--surface-rgb) / <alpha-value>)',

@@ -83,24 +83,22 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
       }}
       className={`flex flex-col group select-none pointer-events-auto ${isDragging ? 'scale-[1.01] shadow-[0_30px_70px_rgba(0,0,0,0.6)]' : 'shadow-[0_20px_50px_rgba(0,0,0,0.5)]'}`}
     >
-      {/* Resizers */}
       <div className="absolute inset-x-0 -top-1 h-2 cursor-ns-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'top')} />
       <div className="absolute inset-x-0 -bottom-1 h-2 cursor-ns-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'bottom')} />
       <div className="absolute inset-y-0 -left-1 w-2 cursor-ew-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'left')} />
       <div className="absolute inset-y-0 -right-1 w-2 cursor-ew-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'right')} />
       <div className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'bottomright')} />
 
-      {/* Main Panel: Dynamic Surface */}
       <div className="w-full h-full bg-surface/50 backdrop-blur-2xl rounded-xl flex flex-col overflow-hidden border border-text-main/10 animate-in fade-in zoom-in duration-300">
         
-        {/* Header: Dynamic Colors */}
+        {/* Header with Display Font */}
         <div 
           onMouseDown={handleMouseDown}
           className="h-9 flex items-center justify-between px-3 bg-text-main/5 border-t border-text-main/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] cursor-grab active:cursor-grabbing hover:bg-text-main/10 transition-colors shrink-0 group/header"
         >
           <div className="flex items-center gap-2">
             <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isDragging ? 'bg-brand' : 'bg-text-main/20 group-hover/header:bg-brand/50'}`} />
-            <span className="text-[10px] font-bold tracking-[0.15em] text-text-main/40 uppercase">{app}</span>
+            <span className="text-[10px] font-black tracking-[0.2em] text-text-main/50 uppercase font-display">{app}</span>
           </div>
           <div className="flex items-center gap-1">
             <button 
@@ -121,9 +119,9 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
               <div className="space-y-4 mb-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0 border border-brand/20 shadow-[0_0_10px_rgb(var(--brand-rgb)/0.2)]">
-                    <span className="text-brand text-xs font-bold">CR</span>
+                    <span className="text-brand text-xs font-black font-display">CR</span>
                   </div>
-                  <div className="bg-text-main/5 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-text-main/80 border border-text-main/5 backdrop-blur-md">
+                  <div className="bg-text-main/5 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-text-main/90 font-medium border border-text-main/10 backdrop-blur-md">
                     Hello. I am CORVUS. How can I help you focus today?
                   </div>
                 </div>
@@ -132,7 +130,7 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
                 <input 
                   type="text" 
                   placeholder="Execute command..." 
-                  className="w-full bg-text-main/5 border border-text-main/10 rounded-xl pl-4 pr-10 py-2.5 text-sm text-text-main placeholder:text-text-main/20 focus:outline-none focus:border-brand/30 transition-all"
+                  className="w-full bg-text-main/5 border border-text-main/10 rounded-xl pl-4 pr-10 py-2.5 text-sm text-text-main font-medium placeholder:text-text-main/20 focus:outline-none focus:border-brand/30 transition-all"
                 />
                 <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-text-main/20 hover:text-brand transition-colors">
                   <Send size={14} />
@@ -141,7 +139,7 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
             </div>
           ) : (
             <div className="h-full flex items-center justify-center text-text-main/10 p-4">
-              <p className="text-[10px] tracking-[0.2em] uppercase">{app} module offline</p>
+              <p className="text-[10px] tracking-[0.3em] uppercase font-black font-display">{app} module offline</p>
             </div>
           )}
         </div>

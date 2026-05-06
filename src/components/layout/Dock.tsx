@@ -31,8 +31,8 @@ const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick }) =
       {icon}
     </div>
     <span className={cn(
-      "text-[9px] font-black uppercase tracking-[0.1em] mt-1.5 block text-center transition-all duration-300",
-      isActive ? "text-brand opacity-100" : "text-text-main/20 group-hover:text-text-main/60"
+      "text-[9px] font-black uppercase tracking-[0.1em] mt-1.5 block text-center transition-all duration-300 font-label",
+      isActive ? "text-brand opacity-100" : "text-text-main/30 group-hover:text-text-main/70"
     )}>
       {label}
     </span>
@@ -49,11 +49,11 @@ interface DockProps {
 
 const Dock: React.FC<DockProps> = ({ activeApps, toggleApp }) => {
   return (
-    <div className="mb-4 flex items-end gap-1 px-3 pt-1.5 pb-1 bg-surface/40 backdrop-blur-3xl border border-text-main/5 rounded-2xl shadow-2xl">
-      <DockItem icon={<Globe2 size={18} strokeWidth={1.5} />} label="Mind" isActive={activeApps.includes('Mind')} onClick={() => toggleApp('Mind')} />
-      <DockItem icon={<Share2 size={18} strokeWidth={1.5} />} label="Network" isActive={activeApps.includes('Network')} onClick={() => toggleApp('Network')} />
-      <DockItem icon={<StickyNote size={18} strokeWidth={1.5} />} label="Notes" isActive={activeApps.includes('Notes')} onClick={() => toggleApp('Notes')} />
-      <DockItem icon={<CalendarDays size={18} strokeWidth={1.5} />} label="Calendar" isActive={activeApps.includes('Calendar')} onClick={() => toggleApp('Calendar')} />
+    <div className="mb-4 flex items-end gap-1 px-3 pt-1.5 pb-1 bg-surface/40 backdrop-blur-2xl border border-text-main/10 rounded-2xl shadow-2xl">
+      <DockItem icon={<Globe2 size={18} strokeWidth={2} />} label="Mind" isActive={activeApps.includes('Mind')} onClick={() => toggleApp('Mind')} />
+      <DockItem icon={<Share2 size={18} strokeWidth={2} />} label="Network" isActive={activeApps.includes('Network')} onClick={() => toggleApp('Network')} />
+      <DockItem icon={<StickyNote size={18} strokeWidth={2} />} label="Notes" isActive={activeApps.includes('Notes')} onClick={() => toggleApp('Notes')} />
+      <DockItem icon={<CalendarDays size={18} strokeWidth={2} />} label="Calendar" isActive={activeApps.includes('Calendar')} onClick={() => toggleApp('Calendar')} />
     </div>
   );
 };
