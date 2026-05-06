@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Send, Terminal, Cpu, Mic } from 'lucide-react';
+import { X, Send, Terminal, Cpu, Mic, MicOff } from 'lucide-react';
 import CalendarApp from './CalendarApp';
 
 interface Message {
@@ -45,8 +45,16 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [voiceMode, setVoiceMode] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const voiceModeRef = useRef(false);
+  const recognitionRef = useRef<any>(null);
+
+  useEffect(() => {
+    voiceModeRef.current = voiceMode;
+  }, [voiceMode]);
 
   useEffect(() => {
     const updateVoices = () => {
@@ -86,24 +94,7 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
     return { cleanText: cleanText.trim(), actions };
   }, []);
 
-  const speakText = async (text: string) => {
-    // 1. Coba gunakan Puter.js (Free API untuk Neural/Generative TTS yang sangat natural)
-    try {
-      const puter = (window as any).puter;
-      if (puter && puter.ai) {
-        // Gunakan Gemini/Neural engine bawaan Puter jika tersedia
-        const audio = await puter.ai.txt2speech(text, {
-          language: "id-ID",
-          engine: "neural" // Menggunakan neural engine yang setara dengan ElevenLabs/AWS Polly premium
-        });
-        audio.play();
-        return; // Selesai jika berhasil
-      }
-    } catch (err) {
-      console.error("Puter TTS error, falling back to browser TTS:", err);
-    }
-
-    // 2. Fallback: Gunakan browser Web Speech API jika Puter.js gagal/terblokir
+  const speakText = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
@@ -111,6 +102,7 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
       const currentVoices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
       const idVoices = currentVoices.filter(v => v.lang.startsWith('id'));
       
+      // Prioritaskan suara Neural/Premium bawaan browser/OS
       const selectedVoice = 
         idVoices.find(v => v.name.includes('Natural') || v.name.includes('Online')) ||
         idVoices.find(v => v.name.includes('Google')) ||
@@ -126,8 +118,21 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
       utterance.rate = 0.95;
       utterance.pitch = 1.05;
 
+      utterance.onend = () => {
+        if (voiceModeRef.current) {
+          startListening();
+        }
+      };
+
       window.speechSynthesis.speak(utterance);
     }
+  };
+
+  const stopListening = () => {
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch (e) {}
+    }
+    setIsListening(false);
   };
 
   const startListening = () => {
@@ -135,8 +140,10 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       alert("Browser ini tidak mendukung fitur pengenalan suara.");
+      setVoiceMode(false);
       return;
     }
+    
     const recognition = new SpeechRecognition();
     recognition.lang = 'id-ID';
     recognition.interimResults = false;
@@ -146,6 +153,7 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
     recognition.onerror = (e: any) => {
       console.error("Voice recognition error:", e.error);
       setIsListening(false);
+      if (e.error === 'not-allowed') setVoiceMode(false);
     };
     recognition.onend = () => setIsListening(false);
     recognition.onresult = (event: any) => {
@@ -154,14 +162,31 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
       handleSendMessage(transcript, true);
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+      recognitionRef.current = recognition;
+    } catch (e) {
+      console.error(e);
+    }
   };
 
-  const handleSendMessage = async (customTextOrEvent?: string | any, isVoice = false) => {
+  const toggleVoiceMode = () => {
+    if (!voiceMode) {
+      setVoiceMode(true);
+      startListening();
+    } else {
+      setVoiceMode(false);
+      stopListening();
+      window.speechSynthesis.cancel();
+    }
+  };
+
+  const handleSendMessage = async (customTextOrEvent?: string | any, isVoiceAction = false) => {
     const textToSend = typeof customTextOrEvent === 'string' ? customTextOrEvent : input;
     if (!textToSend.trim() || isTyping) return;
 
-    const useVoiceReply = isVoice;
+    stopListening();
+    const useVoiceReply = voiceModeRef.current || isVoiceAction;
 
     // Obfuscated to bypass GitHub Push Protection while keeping it internal to the system
     const apiKey = import.meta.env.VITE_GROQ_API_KEY || ("gsk_" + "A9VyufqigjPR4V5MsjrtWGdy" + "b3FYvJC5eB1x3iz1MCIyAIop68aa");
@@ -383,12 +408,15 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
                 />
                 <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   <button 
-                    onClick={() => startListening()}
-                    disabled={isTyping}
-                    className={`p-2 transition-colors rounded-lg ${isListening ? 'text-red-500 bg-red-500/10' : 'text-text-main/20 hover:text-brand'} disabled:opacity-30`}
-                    title="Voice Input"
+                    onClick={toggleVoiceMode}
+                    className={`p-2 transition-colors rounded-lg ${voiceMode ? 'text-red-500 bg-red-500/10 shadow-[0_0_15px_rgba(239,68,68,0.3)]' : 'text-text-main/20 hover:text-brand'}`}
+                    title={voiceMode ? "Voice Mode ON (Click to turn off)" : "Voice Mode OFF (Click to turn on)"}
                   >
-                    <Mic size={18} strokeWidth={2.5} className={isListening ? 'animate-pulse' : ''} />
+                    {voiceMode ? (
+                      <Mic size={18} strokeWidth={2.5} className={isListening ? 'animate-pulse' : ''} />
+                    ) : (
+                      <MicOff size={18} strokeWidth={2.5} />
+                    )}
                   </button>
                   <button 
                     onClick={() => handleSendMessage()}
