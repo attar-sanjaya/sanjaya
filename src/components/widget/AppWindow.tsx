@@ -119,7 +119,11 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
           </div>
           <div className="flex items-center gap-1">
             <button 
-              onClick={onClose} 
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
               className="w-6 h-6 rounded-md hover:bg-red-500/80 text-white/40 hover:text-white flex items-center justify-center transition-all active:scale-90"
             >
               <X size={12} />
