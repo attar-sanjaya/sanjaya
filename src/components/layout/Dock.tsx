@@ -19,19 +19,19 @@ const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick }) =
     <div className={cn(
       "p-1.5 rounded-[12px] transition-all duration-300 group-hover:scale-110",
       isActive
-        ? "bg-cyan-500/15 text-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.2)]"
+        ? "bg-brand/15 text-brand shadow-[0_0_12px_rgb(var(--brand-rgb)/0.2)]"
         : "text-white/50 group-hover:text-white/90 group-hover:bg-white/10"
     )}>
       {icon}
     </div>
     <span className={cn(
       "text-[10px] font-medium tracking-wide mt-1 block text-center transition-colors duration-300",
-      isActive ? "text-cyan-400" : "text-white/50 group-hover:text-white/80"
+      isActive ? "text-brand" : "text-white/50 group-hover:text-white/80"
     )}>
       {label}
     </span>
     {isActive && (
-      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.9)]" />
+      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-brand rounded-full shadow-[0_0_8px_rgb(var(--brand-rgb)/0.9)]" />
     )}
   </button>
 );

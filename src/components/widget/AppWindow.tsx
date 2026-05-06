@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Send, Maximize2, Minimize2 } from 'lucide-react';
+import { X, Send } from 'lucide-react';
 import CalendarApp from './CalendarApp';
 
 interface AppWindowProps {
@@ -100,7 +100,7 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
       }}
       className={`flex flex-col group select-none pointer-events-auto ${isDragging ? 'scale-[1.02] shadow-[0_30px_70px_rgba(0,0,0,0.6)]' : 'shadow-[0_20px_50px_rgba(0,0,0,0.5)]'}`}
     >
-      {/* Native Resize Handles - UI UX Pro Max Hit-testing */}
+      {/* Native Resize Handles */}
       <div className="absolute inset-x-0 -top-1 h-2 cursor-ns-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'top')} />
       <div className="absolute inset-x-0 -bottom-1 h-2 cursor-ns-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'bottom')} />
       <div className="absolute inset-y-0 -left-1 w-2 cursor-ew-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'left')} />
@@ -108,13 +108,13 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
       <div className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'bottomright')} />
 
       <div className="w-full h-full glass-morphism rounded-xl flex flex-col overflow-hidden border border-white/10 bg-slate-900/60 backdrop-blur-3xl animate-in fade-in zoom-in duration-300">
-        {/* Window Header - UI UX Pro Max Refinement */}
+        {/* Window Header */}
         <div 
           onMouseDown={handleMouseDown}
           className="h-9 border-b border-white/5 flex items-center justify-between px-3 bg-white/5 cursor-grab active:cursor-grabbing hover:bg-white/10 transition-colors shrink-0 group/header"
         >
           <div className="flex items-center gap-2">
-            <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isDragging ? 'bg-cyan-400' : 'bg-white/20 group-hover/header:bg-cyan-400/50'}`} />
+            <div className={`w-1.5 h-1.5 rounded-full transition-colors ${isDragging ? 'bg-brand' : 'bg-white/20 group-hover/header:bg-brand/50'}`} />
             <span className="text-[11px] font-semibold tracking-wider text-white/60 uppercase select-none">{app}</span>
           </div>
           <div className="flex items-center gap-1">
@@ -146,11 +146,11 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
             <div className="h-full flex flex-col justify-end p-4">
               <div className="space-y-4 mb-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center shrink-0 border border-cyan-500/20">
-                    <span className="text-cyan-400 text-xs font-bold">OS</span>
+                  <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center shrink-0 border border-brand/20">
+                    <span className="text-brand text-xs font-bold">OS</span>
                   </div>
                   <div className="bg-white/5 rounded-2xl rounded-tl-sm px-4 py-2.5 text-sm text-white/80 border border-white/5">
-                    Hello. I am your life operating system. How can I help you focus today?
+                    Hello. I am CORVUS. How can I help you focus today?
                   </div>
                 </div>
               </div>
@@ -158,10 +158,10 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose }) => {
               <div className="relative mt-auto">
                 <input 
                   type="text" 
-                  placeholder="Message Mind..." 
-                  className="w-full bg-black/40 border border-white/5 rounded-xl pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500/30 transition-all placeholder:text-white/20"
+                  placeholder="Message CORVUS..." 
+                  className="w-full bg-black/40 border border-white/5 rounded-xl pl-4 pr-10 py-2.5 text-sm text-white focus:outline-none focus:border-brand/30 transition-all placeholder:text-white/20"
                 />
-                <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/30 hover:text-cyan-400 transition-colors rounded-lg">
+                <button className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-white/30 hover:text-brand transition-colors rounded-lg">
                   <Send size={14} />
                 </button>
               </div>

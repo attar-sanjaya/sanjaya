@@ -118,9 +118,9 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
                   isPast 
                     ? 'text-white/10 opacity-40 cursor-not-allowed' 
                     : isSelected
-                    ? 'bg-cyan-500 text-slate-900 font-bold shadow-[0_0_12px_rgba(6,182,212,0.6)] cursor-pointer'
+                    ? 'bg-brand text-slate-900 font-bold shadow-[0_0_12px_rgb(var(--brand-rgb)/0.6)] cursor-pointer'
                     : isToday
-                    ? 'border border-cyan-500/50 text-cyan-400 cursor-pointer hover:bg-slate-700/50'
+                    ? 'border border-brand/50 text-brand cursor-pointer hover:bg-slate-700/50'
                     : 'text-white/60 cursor-pointer hover:bg-slate-700/50'
                 }`}
               >
@@ -133,7 +133,7 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
         {!isExpanded && (
           <button 
             onClick={() => toggleExpand(todayDate)}
-            className="absolute bottom-4 right-4 w-9 h-9 bg-cyan-500 rounded-full flex items-center justify-center text-slate-900 shadow-[0_5px_15px_rgba(6,182,212,0.4)] hover:scale-110 active:scale-95 transition-all z-10"
+            className="absolute bottom-4 right-4 w-9 h-9 bg-brand rounded-full flex items-center justify-center text-slate-900 shadow-[0_5px_15px_rgb(var(--brand-rgb)/0.4)] hover:scale-110 active:scale-95 transition-all z-10"
           >
             <Plus size={18} strokeWidth={3} />
           </button>
@@ -144,7 +144,7 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
       <div className={`flex flex-col bg-slate-900/40 backdrop-blur-2xl transition-all duration-300 overflow-hidden ${isExpanded ? 'w-1/2 opacity-100' : 'w-0 opacity-0'}`}>
         <div className="flex-1 flex flex-col p-3">
           <div className="flex items-center justify-between mb-3">
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-cyan-400/80">Add Agenda</h4>
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-brand/80">Add Agenda</h4>
             <button onClick={() => setIsExpanded(false)} className="p-1 hover:bg-white/10 rounded-md text-white/30 hover:text-white transition-colors">
               <X size={14} />
             </button>
@@ -161,7 +161,7 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Title..."
-                className="w-full bg-transparent border-b border-white/10 px-0.5 py-1 text-xs text-white focus:outline-none focus:border-cyan-500/50 transition-all placeholder:text-white/10"
+                className="w-full bg-transparent border-b border-white/10 px-0.5 py-1 text-xs text-white focus:outline-none focus:border-brand/50 transition-all placeholder:text-white/10"
               />
             </div>
 
@@ -202,18 +202,18 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
                 placeholder="Brief notes..."
-                className="w-full bg-white/5 border border-white/5 rounded-md px-2 py-1 text-[10px] text-white focus:outline-none focus:border-cyan-500/30 transition-all placeholder:text-white/10 resize-none"
+                className="w-full bg-white/5 border border-white/5 rounded-md px-2 py-1 text-[10px] text-white focus:outline-none focus:border-brand/30 transition-all placeholder:text-white/10 resize-none"
               />
             </div>
 
             <div className="flex items-center justify-between p-2 bg-white/5 rounded-lg border border-white/5">
               <div className="flex items-center gap-2">
-                <Bell size={12} className={pushEnabled ? "text-cyan-400" : "text-white/20"} />
+                <Bell size={12} className={pushEnabled ? "text-brand" : "text-white/20"} />
                 <span className="text-[10px] text-white/60">Set Push Reminder</span>
               </div>
               <button 
                 onClick={() => setPushEnabled(!pushEnabled)}
-                className={`w-7 h-3.5 rounded-full p-0.5 transition-colors focus:outline-none ${pushEnabled ? 'bg-cyan-500' : 'bg-white/10'}`}
+                className={`w-7 h-3.5 rounded-full p-0.5 transition-colors focus:outline-none ${pushEnabled ? 'bg-brand' : 'bg-white/10'}`}
               >
                 <div className={`w-2.5 h-2.5 bg-white rounded-full transition-transform ${pushEnabled ? 'translate-x-3' : 'translate-x-0'}`} />
               </button>
@@ -222,7 +222,7 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
 
           <button 
             onClick={handleSave}
-            className="mt-3 w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold py-1.5 rounded-lg text-xs transition-all active:scale-95 shadow-[0_5px_15px_rgba(6,182,212,0.3)]"
+            className="mt-3 w-full bg-brand hover:brightness-110 text-slate-950 font-bold py-1.5 rounded-lg text-xs transition-all active:scale-95 shadow-[0_5px_15px_rgb(var(--brand-rgb)/0.3)]"
           >
             Save Agenda
           </button>

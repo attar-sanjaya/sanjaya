@@ -27,7 +27,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onToggleBackground, onToggleCal
         {onToggleBackground && (
           <button 
             onClick={onToggleBackground}
-            className="hover:text-cyan-400 cursor-pointer transition-colors focus:outline-none"
+            className="hover:text-brand cursor-pointer transition-colors focus:outline-none"
             title="Change Wallpaper"
           >
             <ImageIcon size={14} />
@@ -36,7 +36,7 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onToggleBackground, onToggleCal
         {onToggleCalendar && (
           <button 
             onClick={onToggleCalendar} 
-            className={`focus:outline-none transition-colors ${isCalendarOpen ? 'text-cyan-400' : 'text-white/60 hover:text-cyan-400'}`}
+            className={`focus:outline-none transition-colors ${isCalendarOpen ? 'text-brand' : 'text-white/60 hover:text-brand'}`}
             title="Toggle Calendar"
           >
             <Calendar size={14} />

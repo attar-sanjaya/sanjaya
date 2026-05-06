@@ -8,6 +8,7 @@ export default {
     extend: {
       colors: {
         'glass-dark': 'rgba(15, 23, 42, 0.4)',
+        brand: 'rgb(var(--brand-rgb) / <alpha-value>)',
       },
       backdropBlur: {
         'xs': '2px',
@@ -17,8 +18,8 @@ export default {
       },
       keyframes: {
         glow: {
-          '0%': { boxShadow: '0 0 5px rgba(6, 182, 212, 0.2)' },
-          '100%': { boxShadow: '0 0 20px rgba(6, 182, 212, 0.6)' },
+          '0%': { boxShadow: '0 0 5px rgb(var(--brand-rgb) / 0.2)' },
+          '100%': { boxShadow: '0 0 20px rgb(var(--brand-rgb) / 0.6)' },
         }
       }
     },
