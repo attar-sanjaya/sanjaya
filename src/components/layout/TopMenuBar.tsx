@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wifi, WifiOff, Smartphone, Calendar, Clock, Image as ImageIcon } from 'lucide-react';
+import { Calendar, Clock, Image as ImageIcon } from 'lucide-react';
 
 interface TopMenuBarProps {
   onToggleBackground?: () => void;
@@ -9,8 +9,6 @@ interface TopMenuBarProps {
 
 const TopMenuBar: React.FC<TopMenuBarProps> = ({ onToggleBackground, onToggleCalendar, isCalendarOpen }) => {
   const [time, setTime] = useState(new Date());
-  const [wifiOn, setWifiOn] = useState(true);
-  const [phoneConnected, setPhoneConnected] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -35,20 +33,6 @@ const TopMenuBar: React.FC<TopMenuBarProps> = ({ onToggleBackground, onToggleCal
             <ImageIcon size={14} />
           </button>
         )}
-        <button 
-          onClick={() => setWifiOn(!wifiOn)} 
-          className={`focus:outline-none transition-colors ${wifiOn ? 'text-white/80 hover:text-cyan-400' : 'text-white/30 hover:text-red-400'}`}
-          title={wifiOn ? "Turn off Wi-Fi" : "Turn on Wi-Fi"}
-        >
-          {wifiOn ? <Wifi size={14} /> : <WifiOff size={14} />}
-        </button>
-        <button 
-          onClick={() => setPhoneConnected(!phoneConnected)} 
-          className={`focus:outline-none transition-colors ${phoneConnected ? 'text-cyan-400' : 'text-white/60 hover:text-cyan-400'}`}
-          title={phoneConnected ? "Disconnect Phone" : "Connect Phone"}
-        >
-          <Smartphone size={14} />
-        </button>
         {onToggleCalendar && (
           <button 
             onClick={onToggleCalendar} 
