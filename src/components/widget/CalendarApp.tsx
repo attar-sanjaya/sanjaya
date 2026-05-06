@@ -9,8 +9,8 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   
-  // Form State
   const [title, setTitle] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -48,30 +48,20 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
     onToggleExpand?.(newState);
   };
 
-  const scheduleReminder = (eventTitle: string, time: string) => {
-    if (!("Notification" in window)) return;
-
-    if (Notification.permission === "granted") {
-      // Mock scheduler: Show notification after short delay
-      setTimeout(() => {
-        new Notification("CORVUS", {
-          body: `Reminder: ${eventTitle} at ${time}`,
-          icon: '/vite.svg'
-        });
-      }, 3000);
-    }
-  };
-
   const handleSave = async () => {
-    if (pushEnabled) {
-      if (Notification.permission !== "granted") {
-        await Notification.requestPermission();
-      }
-      if (Notification.permission === "granted") {
-        scheduleReminder(title || "Task", startTime || "now");
-      }
+    setIsLoading(true);
+    
+    // Simulate terminal-like processing delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    if (pushEnabled && Notification.permission === "granted") {
+      new Notification("CORVUS", {
+        body: `Event '${title || 'Task'}' scheduled successfully.`,
+        icon: '/vite.svg'
+      });
     }
     
+    setIsLoading(false);
     toggleExpand();
     setTitle('');
     setStartTime('');
@@ -83,27 +73,29 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
     <div className="flex h-full w-full overflow-hidden">
       {/* Left Panel: Calendar Grid */}
       <div className={`flex flex-col p-3 relative transition-all duration-300 ${isExpanded ? 'w-1/2 border-r border-white/5' : 'w-full'}`}>
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="text-sm font-semibold text-white/90">
+        <div className="flex justify-between items-center mb-3 px-1">
+          <h3 className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/80">
             {monthNames[month]} {year}
           </h3>
-          <div className="flex gap-1.5">
-            <button onClick={prevMonth} className="p-1 hover:bg-white/10 rounded text-white/40 hover:text-white transition-colors">
-              <ChevronLeft size={16} />
+          <div className="flex gap-1">
+            <button onClick={prevMonth} className="p-1 hover:bg-white/5 rounded text-white/20 hover:text-white transition-colors">
+              <ChevronLeft size={14} />
             </button>
-            <button onClick={nextMonth} className="p-1 hover:bg-white/10 rounded text-white/40 hover:text-white transition-colors">
-              <ChevronRight size={16} />
+            <button onClick={nextMonth} className="p-1 hover:bg-white/5 rounded text-white/20 hover:text-white transition-colors">
+              <ChevronRight size={14} />
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-7 gap-1.5 text-center text-[9px] mb-2 uppercase tracking-widest text-white/20 font-bold">
+        
+        <div className="grid grid-cols-7 gap-1.5 text-center text-[8px] mb-2 uppercase tracking-widest text-white/20 font-black">
           {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
             <div key={day}>{day}</div>
           ))}
         </div>
-        <div className="grid grid-cols-7 gap-y-1.5 gap-x-1 text-center">
+
+        <div className="grid grid-cols-7 gap-y-1 gap-x-1 text-center">
           {blanks.map(blank => (
-            <div key={`blank-${blank}`} className="w-6 h-6" />
+            <div key={`blank-${blank}`} className="w-7 h-7" />
           ))}
           {days.map(date => {
             const isToday = todayYear === year && todayMonth === month && date === todayDate;
@@ -114,102 +106,104 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
               <div 
                 key={date} 
                 onClick={() => !isPast && toggleExpand(date)}
-                className={`w-7 h-7 flex items-center justify-center rounded-full mx-auto text-xs transition-all ${
+                className={`w-7 h-7 flex items-center justify-center rounded-full mx-auto text-[11px] transition-all relative ${
                   isPast 
-                    ? 'text-white/10 opacity-40 cursor-not-allowed' 
+                    ? 'text-white/10 opacity-30 cursor-not-allowed' 
                     : isSelected
-                    ? 'bg-brand text-slate-900 font-bold shadow-[0_0_12px_rgb(var(--brand-rgb)/0.6)] cursor-pointer'
+                    ? 'bg-brand text-slate-950 font-bold shadow-[0_0_15px_rgb(var(--brand-rgb)/0.8)] cursor-pointer scale-110'
                     : isToday
-                    ? 'border border-brand/50 text-brand cursor-pointer hover:bg-slate-700/50'
-                    : 'text-white/60 cursor-pointer hover:bg-slate-700/50'
+                    ? 'border border-brand/40 text-brand font-bold cursor-pointer hover:bg-brand/10'
+                    : 'text-white/50 cursor-pointer hover:bg-white/5'
                 }`}
               >
                 {date}
+                {isToday && !isSelected && <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-0.5 h-0.5 bg-brand rounded-full" />}
               </div>
             );
           })}
         </div>
 
+        {/* Floating Action Button: Holo-morphism */}
         {!isExpanded && (
           <button 
             onClick={() => toggleExpand(todayDate)}
-            className="absolute bottom-4 right-4 w-9 h-9 bg-brand rounded-full flex items-center justify-center text-slate-900 shadow-[0_5px_15px_rgb(var(--brand-rgb)/0.4)] hover:scale-110 active:scale-95 transition-all z-10"
+            className="absolute bottom-4 right-4 w-9 h-9 bg-brand rounded-full flex items-center justify-center text-slate-950 shadow-[0_5px_15px_rgb(var(--brand-rgb)/0.3)] hover:shadow-[0_0_15px_rgb(var(--brand-rgb)/0.8)] hover:scale-110 active:scale-95 transition-all duration-300 z-10"
           >
             <Plus size={18} strokeWidth={3} />
           </button>
         )}
       </div>
 
-      {/* Right Panel: Add Agenda Form - Compact UI */}
-      <div className={`flex flex-col bg-slate-900/40 backdrop-blur-2xl transition-all duration-300 overflow-hidden ${isExpanded ? 'w-1/2 opacity-100' : 'w-0 opacity-0'}`}>
+      {/* Right Panel: Form with Terminal Aesthetics */}
+      <div className={`flex flex-col bg-slate-900/40 backdrop-blur-3xl transition-all duration-300 overflow-hidden border-l border-white/5 ${isExpanded ? 'w-1/2 opacity-100' : 'w-0 opacity-0'}`}>
         <div className="flex-1 flex flex-col p-3">
-          <div className="flex items-center justify-between mb-3">
-            <h4 className="text-[10px] font-bold uppercase tracking-wider text-brand/80">Add Agenda</h4>
-            <button onClick={() => setIsExpanded(false)} className="p-1 hover:bg-white/10 rounded-md text-white/30 hover:text-white transition-colors">
-              <X size={14} />
+          <div className="flex items-center justify-between mb-4 px-1">
+            <h4 className="text-[9px] font-black uppercase tracking-[0.3em] text-brand/90">Initialize_Event</h4>
+            <button onClick={() => setIsExpanded(false)} className="p-1 hover:bg-white/5 rounded text-white/20 hover:text-white transition-colors">
+              <X size={12} />
             </button>
           </div>
 
-          <div className="space-y-2.5 flex-1">
+          <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-1">
             <div className="space-y-1">
               <div className="flex items-center gap-1.5 px-0.5">
-                <CalendarIcon size={10} className="text-white/20" />
-                <span className="text-[9px] font-bold text-white/30 uppercase">Event Title</span>
+                <CalendarIcon size={10} className="text-brand/40" />
+                <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Header</span>
               </div>
               <input 
                 type="text" 
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Title..."
-                className="w-full bg-transparent border-b border-white/10 px-0.5 py-1 text-xs text-white focus:outline-none focus:border-brand/50 transition-all placeholder:text-white/10"
+                placeholder="ENTRY_TITLE..."
+                className="w-full bg-white/5 border border-white/5 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-none focus:border-brand/40 transition-all font-mono placeholder:text-white/5"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 px-0.5">
-                  <Clock size={10} className="text-white/20" />
-                  <span className="text-[9px] font-bold text-white/30 uppercase">Start</span>
+                  <Clock size={10} className="text-brand/40" />
+                  <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Start</span>
                 </div>
                 <input 
                   type="time" 
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full bg-white/5 border border-white/5 rounded-md px-1.5 py-1 text-[10px] text-white focus:outline-none [color-scheme:dark]"
+                  className="w-full bg-white/5 border border-white/5 rounded-lg px-2 py-1.5 text-[10px] text-white focus:outline-none focus:border-brand/40 [color-scheme:dark] font-mono"
                 />
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-1.5 px-0.5">
-                  <Clock size={10} className="text-white/20" />
-                  <span className="text-[9px] font-bold text-white/30 uppercase">End</span>
+                  <Clock size={10} className="text-brand/40" />
+                  <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">End</span>
                 </div>
                 <input 
                   type="time" 
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full bg-white/5 border border-white/5 rounded-md px-1.5 py-1 text-[10px] text-white focus:outline-none [color-scheme:dark]"
+                  className="w-full bg-white/5 border border-white/5 rounded-lg px-2 py-1.5 text-[10px] text-white focus:outline-none focus:border-brand/40 [color-scheme:dark] font-mono"
                 />
               </div>
             </div>
 
             <div className="space-y-1">
               <div className="flex items-center gap-1.5 px-0.5">
-                <AlignLeft size={10} className="text-white/20" />
-                <span className="text-[9px] font-bold text-white/30 uppercase">Notes</span>
+                <AlignLeft size={10} className="text-brand/40" />
+                <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Description</span>
               </div>
               <textarea 
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={2}
-                placeholder="Brief notes..."
-                className="w-full bg-white/5 border border-white/5 rounded-md px-2 py-1 text-[10px] text-white focus:outline-none focus:border-brand/30 transition-all placeholder:text-white/10 resize-none"
+                placeholder="METADATA..."
+                className="w-full bg-white/5 border border-white/5 rounded-lg px-2 py-1.5 text-[10px] text-white focus:outline-none focus:border-brand/40 transition-all font-mono placeholder:text-white/5 resize-none"
               />
             </div>
 
-            <div className="flex items-center justify-between p-2 bg-white/5 rounded-lg border border-white/5">
+            <div className="flex items-center justify-between p-2.5 bg-white/5 rounded-lg border border-white/5">
               <div className="flex items-center gap-2">
-                <Bell size={12} className={pushEnabled ? "text-brand" : "text-white/20"} />
-                <span className="text-[10px] text-white/60">Set Push Reminder</span>
+                <Bell size={12} className={pushEnabled ? "text-brand animate-pulse" : "text-white/10"} />
+                <span className="text-[9px] font-bold text-white/40 uppercase tracking-tight">Push_Reminder</span>
               </div>
               <button 
                 onClick={() => setPushEnabled(!pushEnabled)}
@@ -222,9 +216,14 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand }) => {
 
           <button 
             onClick={handleSave}
-            className="mt-3 w-full bg-brand hover:brightness-110 text-slate-950 font-bold py-1.5 rounded-lg text-xs transition-all active:scale-95 shadow-[0_5px_15px_rgb(var(--brand-rgb)/0.3)]"
+            disabled={isLoading}
+            className={`mt-4 w-full bg-brand text-slate-950 font-black py-2 rounded-lg text-[10px] uppercase tracking-widest transition-all active:scale-95 shadow-[0_5px_15px_rgb(var(--brand-rgb)/0.3)] hover:shadow-[0_0_20px_rgb(var(--brand-rgb)/0.6)] ${isLoading ? 'opacity-80' : ''}`}
           >
-            Save Agenda
+            {isLoading ? (
+              <span className="animate-pulse font-mono">[SAVING_DATA...]</span>
+            ) : (
+              <span>Save_Agenda</span>
+            )}
           </button>
         </div>
       </div>

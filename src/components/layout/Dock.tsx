@@ -16,22 +16,29 @@ interface DockItemProps {
 
 const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick }) => (
   <button onClick={onClick} className="dock-item group relative px-3 py-1.5 focus:outline-none">
+    {/* Aurora UI Underglow for Active Icon */}
+    {isActive && (
+      <div className="absolute inset-0 flex items-center justify-center -z-10 pointer-events-none">
+        <div className="w-8 h-8 bg-brand/30 blur-xl rounded-full animate-pulse transition-all duration-1000" />
+      </div>
+    )}
+
     <div className={cn(
-      "p-1.5 rounded-[12px] transition-all duration-300 group-hover:scale-110",
+      "p-1.5 rounded-[12px] transition-all duration-500 group-hover:scale-110 relative z-10",
       isActive
-        ? "bg-brand/15 text-brand shadow-[0_0_12px_rgb(var(--brand-rgb)/0.2)]"
-        : "text-white/50 group-hover:text-white/90 group-hover:bg-white/10"
+        ? "bg-brand/15 text-brand shadow-[0_0_15px_rgb(var(--brand-rgb)/0.2)] border border-brand/20"
+        : "text-white/40 group-hover:text-white/90 group-hover:bg-white/5 border border-transparent"
     )}>
       {icon}
     </div>
     <span className={cn(
-      "text-[10px] font-medium tracking-wide mt-1 block text-center transition-colors duration-300",
-      isActive ? "text-brand" : "text-white/50 group-hover:text-white/80"
+      "text-[9px] font-black uppercase tracking-[0.1em] mt-1.5 block text-center transition-all duration-300",
+      isActive ? "text-brand opacity-100" : "text-white/20 group-hover:text-white/60"
     )}>
       {label}
     </span>
     {isActive && (
-      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-brand rounded-full shadow-[0_0_8px_rgb(var(--brand-rgb)/0.9)]" />
+      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-0.5 bg-brand rounded-full shadow-[0_0_8px_rgb(var(--brand-rgb)/0.8)]" />
     )}
   </button>
 );
@@ -43,7 +50,7 @@ interface DockProps {
 
 const Dock: React.FC<DockProps> = ({ activeApps, toggleApp }) => {
   return (
-    <div className="mb-2 flex items-end gap-0.5 px-2 pt-1 pb-1 bg-slate-900/40 backdrop-blur-3xl border border-slate-700/40 rounded-full shadow-2xl">
+    <div className="mb-4 flex items-end gap-1 px-3 pt-1.5 pb-1 bg-slate-950/40 backdrop-blur-2xl border border-white/5 rounded-2xl shadow-2xl">
       <DockItem
         icon={<Globe2 size={18} strokeWidth={1.5} />}
         label="Mind"
