@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Send, Terminal, Cpu, Settings } from 'lucide-react';
+import { X, Send, Terminal, Cpu } from 'lucide-react';
 import CalendarApp from './CalendarApp';
 
 interface Message {
@@ -32,10 +32,6 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   const [resizeDir, setResizeDir] = useState<string | null>(null);
 
   const [userContext] = useState({ name: 'UNKNOWN', profession: 'UNKNOWN', goals: 'UNKNOWN' });
-  
-  // Local API Key Management
-  const [localApiKey, setLocalApiKey] = useState(() => localStorage.getItem('CORVUS_API_KEY') || '');
-  const [showSettings, setShowSettings] = useState(false);
 
   const [messages, setMessages] = useState<Message[]>([
     { 
@@ -53,12 +49,6 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
 
   const scrollToBottom = () => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   useEffect(() => { if (isMind) scrollToBottom(); }, [messages, isTyping, isMind]);
-
-  const saveApiKey = (key: string) => {
-    localStorage.setItem('CORVUS_API_KEY', key);
-    setLocalApiKey(key);
-    setShowSettings(false);
-  };
 
   const parseActions = useCallback((text: string) => {
     const actionRegex = /<ACTION>([\s\S]*?)<\/ACTION>/g;
@@ -82,11 +72,10 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   const handleSendMessage = async () => {
     if (!input.trim() || isTyping) return;
 
-    const effectiveApiKey = localApiKey || import.meta.env.VITE_GROQ_API_KEY;
-    
-    if (!effectiveApiKey) {
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+    if (!apiKey) {
       setMessages(prev => [...prev, { role: 'user', content: input }]);
-      setMessages(prev => [...prev, { role: 'assistant', content: 'SYSTEM_CRITICAL: API_KEY_MISSING. Please click the gear icon to set your Groq Key locally.' }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: '[SYSTEM ERROR]: VITE_GROQ_API_KEY is missing from the secure environment. Please configure it in the system settings.' }]);
       setInput('');
       return;
     }
@@ -112,7 +101,7 @@ RULES: Use bullet points. Bold emphasis. Concise paragraphs. English only.`;
 
       const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${effectiveApiKey}`, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
           model: 'llama-3.3-70b-versatile',
           messages: [
@@ -213,15 +202,6 @@ RULES: Use bullet points. Bold emphasis. Concise paragraphs. English only.`;
             <span className="text-[10px] font-black tracking-[0.2em] text-text-main/50 uppercase font-display">{app}</span>
           </div>
           <div className="flex items-center gap-1">
-            {isMind && (
-              <button 
-                onClick={() => setShowSettings(!showSettings)}
-                className="w-5 h-5 rounded hover:bg-text-main/10 text-text-main/20 hover:text-text-main flex items-center justify-center transition-all mr-1"
-                title="AI Settings"
-              >
-                <Settings size={10} />
-              </button>
-            )}
             <button 
               onClick={(e) => { e.stopPropagation(); onClose(); }}
               onMouseDown={(e) => e.stopPropagation()}
@@ -233,40 +213,6 @@ RULES: Use bullet points. Bold emphasis. Concise paragraphs. English only.`;
         </div>
 
         <div className="flex-1 overflow-hidden flex flex-col bg-black/10 pointer-events-auto relative">
-          {/* Settings Overlay for API Key */}
-          {showSettings && (
-            <div className="absolute inset-0 bg-surface/90 backdrop-blur-xl z-50 p-6 flex flex-col items-center justify-center animate-in fade-in zoom-in duration-200">
-              <div className="w-full max-w-sm space-y-4">
-                <h3 className="text-sm font-black uppercase tracking-widest text-brand">Cognitive Key Calibration</h3>
-                <p className="text-[10px] text-text-main/60 leading-relaxed font-label">
-                  If the system fails to read your key from Cloudflare, you can lock it in here locally. It will be stored in your browser's secure cache.
-                </p>
-                <input 
-                  type="password"
-                  defaultValue={localApiKey}
-                  placeholder="gsk_..."
-                  className="w-full bg-text-main/5 border border-text-main/10 rounded-lg px-4 py-3 text-xs text-text-main focus:outline-none focus:border-brand/40 transition-all font-mono"
-                  onKeyDown={(e) => e.key === 'Enter' && saveApiKey((e.target as HTMLInputElement).value)}
-                  id="api_key_input"
-                />
-                <div className="flex gap-2">
-                  <button 
-                    onClick={() => saveApiKey((document.getElementById('api_key_input') as HTMLInputElement).value)}
-                    className="flex-1 bg-brand text-slate-950 font-black py-2 rounded-lg text-[10px] uppercase tracking-widest hover:brightness-110 transition-all"
-                  >
-                    Lock Key
-                  </button>
-                  <button 
-                    onClick={() => setShowSettings(false)}
-                    className="px-4 py-2 text-text-main/40 hover:text-text-main text-[10px] uppercase font-black transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
           {isCalendar ? (
              <CalendarApp onToggleExpand={(expanded) => setSize(prev => ({ ...prev, width: expanded ? 640 : 320 }))} />
           ) : isMind ? (
