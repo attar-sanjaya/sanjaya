@@ -70,7 +70,8 @@ const App: React.FC = () => {
           title: action.payload.title,
           date: action.payload.date, // format YYYY-MM-DD
           time: action.payload.time,
-          reminderTime: action.payload.reminderTime
+          reminderTime: action.payload.reminderTime,
+          isAiGenerated: true // Flag: event ini dibuat AI, jangan buka form
         };
         setCalendarEvents(prev => [...prev, newEvent]);
         setActiveEvent(newEvent);

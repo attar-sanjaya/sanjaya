@@ -31,6 +31,17 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand, activeEvent, 
         setCurrentDate(dateObj);
         setSelectedDate(dateObj.getDate());
       }
+
+      // Jika event dibuat oleh AI (isAiGenerated = true),
+      // langsung buka agenda view — event sudah tersimpan, jangan isi form lagi
+      if (activeEvent.isAiGenerated) {
+        setIsExpanded(true);
+        setViewMode('agenda');
+        onToggleExpand?.(true);
+        return;
+      }
+
+      // Mode manual (user klik + form): isi form seperti biasa
       if (activeEvent.title) setTitle(activeEvent.title);
       if (activeEvent.time) setStartTime(activeEvent.time);
       if (activeEvent.reminderTime) {

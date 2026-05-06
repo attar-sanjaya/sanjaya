@@ -50,6 +50,7 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const voiceModeRef = useRef(false);
+  const abortSpeechRef = useRef(false);
   const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
@@ -97,34 +98,59 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   const speakText = (text: string) => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      abortSpeechRef.current = false;
+      (window as any).utterances = []; // Hack: Mencegah Chrome mematikan suara tiba-tiba (Garbage Collection bug)
       
       const currentVoices = availableVoices.length > 0 ? availableVoices : window.speechSynthesis.getVoices();
-      const idVoices = currentVoices.filter(v => v.lang.startsWith('id'));
+      const idVoices = currentVoices.filter(v => v.lang.includes('id') || v.lang.includes('ID'));
       
-      // Prioritaskan suara Neural/Premium bawaan browser/OS
+      // Prioritaskan suara Neural/Premium bawaan browser/OS (Edge/Google/Apple)
       const selectedVoice = 
         idVoices.find(v => v.name.includes('Natural') || v.name.includes('Online')) ||
         idVoices.find(v => v.name.includes('Google')) ||
-        idVoices.find(v => v.name.includes('Premium') || v.name.includes('Enhanced')) ||
+        idVoices.find(v => v.name.includes('Damayanti') || v.name.includes('Premium')) ||
         idVoices[0];
+
+      // Hack 2: Memecah teks menjadi potongan kecil per tanda baca agar tidak terpotong di tengah jalan
+      const chunks = text.match(/[^.!?\n]+[.!?\n]*/g) || [text];
+      const cleanSentences = chunks.map(s => s.trim()).filter(s => s.length > 0);
+      
+      let currentIndex = 0;
+
+      const speakNextChunk = () => {
+        if (abortSpeechRef.current) return; // Hentikan jika user menekan tombol mati
         
-      if (selectedVoice) {
-        utterance.voice = selectedVoice;
-      } else {
-        utterance.lang = 'id-ID';
-      }
-
-      utterance.rate = 0.95;
-      utterance.pitch = 1.05;
-
-      utterance.onend = () => {
-        if (voiceModeRef.current) {
-          startListening();
+        if (currentIndex >= cleanSentences.length) {
+          if (voiceModeRef.current) startListening();
+          return;
         }
+
+        const utterance = new SpeechSynthesisUtterance(cleanSentences[currentIndex]);
+        (window as any).utterances.push(utterance); // Simpan referensi agar tidak di-GC browser
+        
+        if (selectedVoice) {
+          utterance.voice = selectedVoice;
+        } else {
+          utterance.lang = 'id-ID';
+        }
+
+        utterance.rate = 0.95;
+        utterance.pitch = 1.05;
+
+        utterance.onend = () => {
+          currentIndex++;
+          speakNextChunk();
+        };
+
+        utterance.onerror = () => {
+          currentIndex++;
+          speakNextChunk();
+        };
+
+        window.speechSynthesis.speak(utterance);
       };
 
-      window.speechSynthesis.speak(utterance);
+      speakNextChunk();
     }
   };
 
@@ -172,9 +198,11 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
 
   const toggleVoiceMode = () => {
     if (!voiceMode) {
+      abortSpeechRef.current = false;
       setVoiceMode(true);
       startListening();
     } else {
+      abortSpeechRef.current = true;
       setVoiceMode(false);
       stopListening();
       window.speechSynthesis.cancel();
