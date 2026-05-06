@@ -106,6 +106,7 @@ const App: React.FC = () => {
             onClose={() => toggleApp(app)} 
             onExecuteAction={executeAiAction}
             activeEvent={app === 'Calendar' ? activeEvent : null}
+            calendarEvents={calendarEvents}
           />
         ))}
       </main>

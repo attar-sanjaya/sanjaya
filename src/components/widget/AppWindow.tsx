@@ -13,9 +13,10 @@ interface AppWindowProps {
   onClose: () => void;
   onExecuteAction?: (action: { command: string; payload: any }) => void;
   activeEvent?: any;
+  calendarEvents?: any[];
 }
 
-const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAction, activeEvent }) => {
+const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAction, activeEvent, calendarEvents }) => {
   const isCalendar = app === 'Calendar';
   const isMind = app === 'Mind';
   
@@ -239,6 +240,7 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
              <CalendarApp 
                onToggleExpand={(expanded) => setSize(prev => ({ ...prev, width: expanded ? 640 : 320 }))} 
                activeEvent={activeEvent}
+               calendarEvents={calendarEvents}
              />
           ) : isMind ? (
             <div className="h-full flex flex-col p-4 font-label">
