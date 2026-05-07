@@ -13,9 +13,11 @@ interface DockItemProps {
   isActive?: boolean;
   onClick: () => void;
   position: 'bottom' | 'left';
+  uiStyle: 'crystal' | 'neural' | 'clay' | 'carbon';
 }
 
-const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick, position }) => (
+const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick, position, uiStyle }) => (
+
   <button onClick={onClick} className={cn(
     "dock-item group relative px-3 py-1.5 focus:outline-none flex",
     position === 'left' ? "flex-row items-center gap-3" : "flex-col items-center"
@@ -50,22 +52,27 @@ const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick, pos
   </button>
 );
 
-interface DockProps {
   activeApps: string[];
   toggleApp: (app: string) => void;
   position: 'bottom' | 'left';
+  uiStyle: 'crystal' | 'neural' | 'clay' | 'carbon';
 }
 
-const Dock: React.FC<DockProps> = ({ activeApps, toggleApp, position }) => {
+const Dock: React.FC<DockProps> = ({ activeApps, toggleApp, position, uiStyle }) => {
+
   return (
     <div className={cn(
-      "flex items-end gap-1 px-3 py-1.5 bg-surface/40 backdrop-blur-2xl border border-text-main/10 rounded-2xl shadow-2xl transition-all duration-500",
-      position === 'left' ? "flex-col items-stretch" : "mb-4"
+      "flex items-end gap-1 px-3 py-1.5 transition-all duration-500",
+      position === 'left' ? "flex-col items-stretch" : "mb-4",
+      uiStyle === 'crystal' ? "style-crystal rounded-2xl" :
+      uiStyle === 'neural' ? "style-neural rounded-2xl" :
+      uiStyle === 'clay' ? "style-clay" :
+      "style-carbon rounded-2xl"
     )}>
-      <DockItem icon={<Globe2 size={18} strokeWidth={2} />} label="Mind" isActive={activeApps.includes('Mind')} onClick={() => toggleApp('Mind')} position={position} />
-      <DockItem icon={<Share2 size={18} strokeWidth={2} />} label="Network" isActive={activeApps.includes('Network')} onClick={() => toggleApp('Network')} position={position} />
-      <DockItem icon={<StickyNote size={18} strokeWidth={2} />} label="Notes" isActive={activeApps.includes('Notes')} onClick={() => toggleApp('Notes')} position={position} />
-      <DockItem icon={<CalendarDays size={18} strokeWidth={2} />} label="Calendar" isActive={activeApps.includes('Calendar')} onClick={() => toggleApp('Calendar')} position={position} />
+      <DockItem icon={<Globe2 size={18} strokeWidth={2} />} label="Mind" isActive={activeApps.includes('Mind')} onClick={() => toggleApp('Mind')} position={position} uiStyle={uiStyle} />
+      <DockItem icon={<Share2 size={18} strokeWidth={2} />} label="Network" isActive={activeApps.includes('Network')} onClick={() => toggleApp('Network')} position={position} uiStyle={uiStyle} />
+      <DockItem icon={<StickyNote size={18} strokeWidth={2} />} label="Notes" isActive={activeApps.includes('Notes')} onClick={() => toggleApp('Notes')} position={position} uiStyle={uiStyle} />
+      <DockItem icon={<CalendarDays size={18} strokeWidth={2} />} label="Calendar" isActive={activeApps.includes('Calendar')} onClick={() => toggleApp('Calendar')} position={position} uiStyle={uiStyle} />
     </div>
   );
 };

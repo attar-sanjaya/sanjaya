@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Image as ImageIcon, Palette, Check, Layout, Sparkles, Info } from 'lucide-react';
+import { Upload, Image as ImageIcon, Palette, Check, Layout, Sparkles, Info, Cpu, Terminal } from 'lucide-react';
 
 interface SettingsAppProps {
   currentBg: any;
