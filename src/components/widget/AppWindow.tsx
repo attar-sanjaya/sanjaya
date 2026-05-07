@@ -22,8 +22,8 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   const isCalendar = app === 'Calendar';
   const isMind = app === 'Mind';
   
-  const initialWidth = isCalendar ? 320 : 600;
-  const initialHeight = isCalendar ? 360 : 450;
+  const initialWidth = isMind ? 550 : 350;
+  const initialHeight = isMind ? 500 : 350;
 
   const offset = index * 30;
   const initialX = typeof window !== 'undefined' ? Math.max(20, (window.innerWidth - initialWidth) / 2) + offset : 100 + offset;
@@ -430,7 +430,7 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
         <div className="flex-1 overflow-hidden flex flex-col bg-black/10 pointer-events-auto relative">
           {isCalendar ? (
              <CalendarApp 
-               onToggleExpand={(expanded) => setSize(prev => ({ ...prev, width: expanded ? 640 : 320 }))} 
+               onToggleExpand={(expanded) => setSize(prev => ({ ...prev, width: expanded ? 700 : 350 }))} 
                activeEvent={activeEvent}
                calendarEvents={calendarEvents}
                onAddEvent={onAddEvent}
