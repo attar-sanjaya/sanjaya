@@ -23,6 +23,7 @@
 /* Custom Scrollbar for CORVUS */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
+  height: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -30,11 +31,16 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-text-main/10 rounded-full;
+  background: rgba(var(--text-rgb), 0.05);
+  border-radius: 20px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  @apply bg-brand/30;
+  background: rgba(var(--brand-rgb), 0.4);
+}
+
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none;
 }
 
 @keyframes fadeInScale {
