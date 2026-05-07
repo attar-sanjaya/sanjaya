@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Bell, X, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Bell, X, Calendar as CalendarIcon, Clock, AlignLeft } from 'lucide-react';
 
 interface CalendarAppProps {
   onToggleExpand?: (expanded: boolean) => void;
@@ -8,16 +8,13 @@ interface CalendarAppProps {
   onAddEvent?: (eventData: any) => void;
 }
 
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const DAYS   = ['Su','Mo','Tu','We','Th','Fr','Sa'];
-
 const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand, activeEvent, calendarEvents = [], onAddEvent }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<number | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [viewMode, setViewMode] = useState<'form'|'agenda'>('form');
+  const [viewMode, setViewMode] = useState<'form' | 'agenda'>('form');
   const [isLoading, setIsLoading] = useState(false);
-
+  
   const [title, setTitle] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -25,288 +22,291 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand, activeEvent, 
   const [pushEnabled, setPushEnabled] = useState(false);
   const [reminderTime, setReminderTime] = useState('');
 
-  const y = currentDate.getFullYear(), m = currentDate.getMonth();
-  const daysInMonth = new Date(y, m + 1, 0).getDate();
-  const firstDay = new Date(y, m, 1).getDay();
-  const today = new Date();
-
-  const fmtDate = (d: number) => `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  const eventsFor = (d: number) => calendarEvents.filter(ev => ev.date === fmtDate(d));
-
   useEffect(() => {
-    if (!activeEvent) return;
-    if (activeEvent.date) {
-      const [ey, em, ed] = activeEvent.date.split('-');
-      const dt = new Date(+ey, +em - 1, +ed);
-      setCurrentDate(dt);
-      setSelectedDate(dt.getDate());
+    if (activeEvent) {
+      if (activeEvent.date) {
+        // Date comes in as YYYY-MM-DD
+        const [y, m, d] = activeEvent.date.split('-');
+        const dateObj = new Date(parseInt(y), parseInt(m) - 1, parseInt(d));
+        setCurrentDate(dateObj);
+        setSelectedDate(dateObj.getDate());
+      }
+
+      // Jika event dibuat oleh AI (isAiGenerated = true),
+      // langsung buka agenda view — event sudah tersimpan, jangan isi form lagi
+      if (activeEvent.isAiGenerated) {
+        setIsExpanded(true);
+        setViewMode('agenda');
+        onToggleExpand?.(true);
+        return;
+      }
+
+      // Mode manual (user klik + form): isi form seperti biasa
+      if (activeEvent.title) setTitle(activeEvent.title);
+      if (activeEvent.time) setStartTime(activeEvent.time);
+      if (activeEvent.reminderTime) {
+        setPushEnabled(true);
+        setReminderTime(activeEvent.reminderTime);
+      }
+      
+      setIsExpanded(true);
+      setViewMode('form');
+      onToggleExpand?.(true);
     }
-    if (activeEvent.isAiGenerated) {
-      setIsExpanded(true); setViewMode('agenda'); onToggleExpand?.(true); return;
-    }
-    if (activeEvent.title) setTitle(activeEvent.title);
-    if (activeEvent.time) setStartTime(activeEvent.time);
-    if (activeEvent.reminderTime) { setPushEnabled(true); setReminderTime(activeEvent.reminderTime); }
-    setIsExpanded(true); setViewMode('form'); onToggleExpand?.(true);
   }, [activeEvent]);
 
-  const expand = (date?: number, forceForm?: boolean) => {
+  const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+  const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+
+  const prevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  const nextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const daysInMonth = getDaysInMonth(year, month);
+  const firstDay = getFirstDayOfMonth(year, month);
+
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  const blanks = Array.from({ length: firstDay }, (_, i) => i);
+
+  const today = new Date();
+  const todayDate = today.getDate();
+  const todayMonth = today.getMonth();
+  const todayYear = today.getFullYear();
+
+  const getEventsForDate = (dateNum: number) => {
+    const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(dateNum).padStart(2, '0')}`;
+    return calendarEvents.filter(ev => ev.date === formattedDate);
+  };
+
+  const toggleExpand = (date?: number, forceForm?: boolean) => {
     if (date !== undefined) {
       setSelectedDate(date);
-      setViewMode(eventsFor(date).length > 0 && !forceForm ? 'agenda' : 'form');
+      const dayEvents = getEventsForDate(date);
+      if (dayEvents.length > 0 && !forceForm) {
+        setViewMode('agenda');
+      } else {
+        setViewMode('form');
+      }
     }
-    const next = date !== undefined ? true : !isExpanded;
-    setIsExpanded(next);
-    onToggleExpand?.(next);
+    const newState = date !== undefined ? true : !isExpanded;
+    setIsExpanded(newState);
+    onToggleExpand?.(newState);
   };
 
   const handleSave = async () => {
     if (!title || selectedDate === null) return;
+    
     setIsLoading(true);
-    onAddEvent?.({ title, date: fmtDate(selectedDate), time: startTime, endTime, notes, reminderTime: pushEnabled ? reminderTime : undefined });
-    await new Promise(r => setTimeout(r, 600));
+    
+    // Format date as YYYY-MM-DD
+    const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
+    
+    onAddEvent?.({
+      title,
+      date: formattedDate,
+      time: startTime,
+      notes,
+      reminderTime: pushEnabled ? reminderTime : undefined
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 800)); // Simulate saving
+    
     setIsLoading(false);
     setTitle(''); setStartTime(''); setEndTime(''); setNotes(''); setPushEnabled(false); setReminderTime('');
+    
+    // Switch to agenda view to show the newly added event
     setViewMode('agenda');
   };
 
-  // ─── Shared styles ───
-  const inputStyle: React.CSSProperties = {
-    width: '100%', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)',
-    borderRadius: 8, padding: '5px 8px', fontSize: 11, color: 'rgb(220,230,255)',
-    fontFamily: 'Space Grotesk', outline: 'none', transition: 'border-color 200ms ease',
-  };
-  const labelStyle: React.CSSProperties = {
-    fontSize: 9, fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase',
-    color: 'rgba(220,230,255,0.3)', marginBottom: 3, display: 'block',
-  };
-
   return (
-    <div style={{ display: 'flex', height: '100%', width: '100%', overflow: 'hidden' }}>
-
-      {/* ── Calendar Grid ── */}
-      <div style={{
-        display: 'flex', flexDirection: 'column', padding: 10,
-        width: isExpanded ? '50%' : '100%', transition: 'width 300ms ease',
-        borderRight: isExpanded ? '1px solid rgba(255,255,255,0.06)' : 'none',
-        flexShrink: 0, position: 'relative',
-      }}>
-        {/* Month nav */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <span className="panel-label">{MONTHS[m]} {y}</span>
-          <div style={{ display: 'flex', gap: 4 }}>
-            {[['left', () => setCurrentDate(new Date(y, m-1, 1))], ['right', () => setCurrentDate(new Date(y, m+1, 1))]].map(([dir, fn]) => (
-              <button key={dir as string} onClick={fn as any} style={{
-                width: 22, height: 22, borderRadius: 6, border: 'none', background: 'rgba(255,255,255,0.04)',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                color: 'rgba(220,230,255,0.4)', transition: '200ms ease',
-              }}
-                onMouseEnter={e => e.currentTarget.style.color = 'var(--c-brand)'}
-                onMouseLeave={e => e.currentTarget.style.color = 'rgba(220,230,255,0.4)'}
-              >
-                {dir === 'left' ? <ChevronLeft size={11} /> : <ChevronRight size={11} />}
-              </button>
-            ))}
+    <div className="flex h-full w-full overflow-hidden">
+      {/* Left Panel: Calendar Grid */}
+      <div className={`flex flex-col p-2.5 relative transition-all duration-300 ${isExpanded ? 'w-1/2 border-r border-text-main/5' : 'w-full'}`}>
+        <div className="flex justify-between items-center mb-2.5 px-1">
+          <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-text-main/80 font-display">
+            {monthNames[month]} {year}
+          </h3>
+          <div className="flex gap-1">
+            <button onClick={prevMonth} className="p-1 hover:bg-text-main/5 rounded text-text-main/20 hover:text-text-main transition-colors">
+              <ChevronLeft size={12} />
+            </button>
+            <button onClick={nextMonth} className="p-1 hover:bg-text-main/5 rounded text-text-main/20 hover:text-text-main transition-colors">
+              <ChevronRight size={12} />
+            </button>
           </div>
         </div>
-
-        {/* Day headers */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 6 }}>
-          {DAYS.map(d => (
-            <div key={d} style={{ textAlign: 'center', fontSize: 8, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'rgba(220,230,255,0.2)', padding: '2px 0' }}>{d}</div>
-          ))}
+        
+        <div className="grid grid-cols-7 gap-1 text-center text-[7px] mb-1.5 uppercase tracking-widest text-text-main/20 font-black">
+          {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => <div key={day}>{day}</div>)}
         </div>
 
-        {/* Date cells */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 2, flex: 1 }}>
-          {Array.from({ length: firstDay }).map((_, i) => <div key={`b${i}`} />)}
-          {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(date => {
-            const isToday = date === today.getDate() && m === today.getMonth() && y === today.getFullYear();
-            const isPast = new Date(y, m, date) < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            const isSel = selectedDate === date && isExpanded;
-            const hasEv = eventsFor(date).length > 0;
+        <div className="grid grid-cols-7 gap-y-0.5 gap-x-0.5 text-center">
+          {blanks.map(blank => <div key={`blank-${blank}`} className="w-7 h-7" />)}
+          {days.map(date => {
+            const isToday = todayYear === year && todayMonth === month && date === todayDate;
+            const isPast = year < todayYear || (year === todayYear && month < todayMonth) || (year === todayYear && month === todayMonth && date < todayDate);
+            const isSelected = selectedDate === date && isExpanded;
+            const hasEvents = getEventsForDate(date).length > 0;
+
             return (
-              <div
-                key={date}
-                onClick={() => !isPast && expand(date)}
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  aspectRatio: '1', borderRadius: '50%', fontSize: 10, fontWeight: isSel || isToday ? 700 : 400,
-                  cursor: isPast ? 'not-allowed' : 'pointer',
-                  opacity: isPast ? 0.2 : 1,
-                  position: 'relative',
-                  transition: 'all 200ms ease',
-                  ...(isSel ? {
-                    background: 'var(--c-brand)', color: '#0a0e1a',
-                    boxShadow: '0 0 14px rgba(0,200,180,0.5)',
-                  } : isToday ? {
-                    border: '1px solid rgba(0,200,180,0.5)', color: 'var(--c-brand)',
-                  } : {
-                    color: 'rgba(220,230,255,0.6)',
-                  }),
-                }}
-                onMouseEnter={e => { if (!isPast && !isSel) e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-                onMouseLeave={e => { if (!isSel) e.currentTarget.style.background = ''; }}
+              <div 
+                key={date} 
+                onClick={() => !isPast && toggleExpand(date)}
+                className={`w-7 h-7 flex items-center justify-center rounded-full mx-auto text-[10px] transition-all relative ${
+                  isPast 
+                    ? 'text-text-main/10 opacity-30 cursor-not-allowed' 
+                    : isSelected
+                    ? 'bg-brand text-slate-950 font-black shadow-[0_0_15px_rgb(var(--brand-rgb)/0.8)] cursor-pointer scale-105'
+                    : isToday
+                    ? 'border border-brand/40 text-brand font-black cursor-pointer hover:bg-brand/10 hover:font-black'
+                    : 'text-text-main/50 cursor-pointer hover:bg-text-main/5 hover:text-text-main hover:font-black'
+                }`}
               >
                 {date}
-                {hasEv && !isSel && (
-                  <span style={{
-                    position: 'absolute', bottom: 2, left: '50%', transform: 'translateX(-50%)',
-                    width: 4, height: 4, borderRadius: '50%',
-                    background: 'var(--c-brand)', boxShadow: '0 0 6px rgba(0,200,180,0.6)',
-                  }} />
-                )}
+                {hasEvents && !isSelected && <div className="absolute top-1 right-1 w-1 h-1 bg-brand rounded-full shadow-[0_0_5px_rgb(var(--brand-rgb))]" />}
+                {isToday && !isSelected && <div className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-0.5 h-0.5 bg-brand rounded-full" />}
               </div>
             );
           })}
         </div>
 
-        {/* Add button */}
         {!isExpanded && (
-          <button
-            onClick={() => expand(today.getDate(), true)}
-            style={{
-              position: 'absolute', bottom: 12, right: 12,
-              width: 32, height: 32, borderRadius: '50%',
-              background: 'var(--c-brand)', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#0a0e1a', boxShadow: '0 4px 16px rgba(0,200,180,0.4)',
-              transition: '200ms ease',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.boxShadow = '0 6px 24px rgba(0,200,180,0.6)'; }}
-            onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,200,180,0.4)'; }}
+          <button 
+            onClick={() => toggleExpand(todayDate, true)}
+            className="absolute bottom-3 right-3 w-8 h-8 bg-brand rounded-full flex items-center justify-center text-slate-950 shadow-[0_5px_15px_rgb(var(--brand-rgb)/0.3)] hover:shadow-[0_0_15px_rgb(var(--brand-rgb)/0.8)] hover:scale-110 active:scale-95 transition-all z-10"
           >
-            <Plus size={16} strokeWidth={3} />
+            <Plus size={16} strokeWidth={4} />
           </button>
         )}
       </div>
 
-      {/* ── Right Panel ── */}
-      <div style={{
-        flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column',
-        opacity: isExpanded ? 1 : 0,
-        width: isExpanded ? '50%' : 0,
-        transition: 'opacity 300ms ease, width 300ms ease',
-        padding: isExpanded ? 10 : 0,
-      }}>
-        {/* Panel header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-          <span className="panel-label">
-            {viewMode === 'form' ? `New · ${selectedDate} ${MONTHS[m]}` : `Agenda · ${selectedDate} ${MONTHS[m]}`}
-          </span>
-          <div style={{ display: 'flex', gap: 4 }}>
-            {viewMode === 'agenda' && (
-              <button onClick={() => setViewMode('form')} style={{ width: 20, height: 20, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--c-brand)' }}>
-                <Plus size={12} strokeWidth={3} />
+      {/* Right Panel: Form / Agenda - ULTRA COMPACT */}
+      <div className={`flex flex-col bg-surface/10 backdrop-blur-3xl transition-all duration-300 overflow-hidden border-l border-text-main/5 ${isExpanded ? 'w-1/2 opacity-100' : 'w-0 opacity-0'}`}>
+        <div className="flex-1 flex flex-col p-2.5">
+          <div className="flex items-center justify-between mb-3 px-0.5">
+            <h4 className="text-[8px] font-black uppercase tracking-[0.3em] text-brand/90 font-display">
+              {viewMode === 'form' ? 'Initialize_Event' : `Agenda: ${selectedDate} ${monthNames[month]}`}
+            </h4>
+            <div className="flex gap-1">
+              {viewMode === 'agenda' && (
+                <button onClick={() => setViewMode('form')} className="p-0.5 hover:bg-text-main/5 rounded text-brand hover:text-brand transition-colors" title="Add Event">
+                  <Plus size={12} strokeWidth={3} />
+                </button>
+              )}
+              <button onClick={() => setIsExpanded(false)} className="p-0.5 hover:bg-text-main/5 rounded text-text-main/20 hover:text-text-main transition-colors">
+                <X size={12} />
               </button>
-            )}
-            <button onClick={() => setIsExpanded(false)} style={{ width: 20, height: 20, borderRadius: 6, border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(220,230,255,0.25)', transition: '200ms ease' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'rgba(239,68,68,0.8)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'rgba(220,230,255,0.25)'}
-            >
-              <X size={10} strokeWidth={2.5} />
-            </button>
+            </div>
           </div>
-        </div>
 
-        {/* Content */}
-        <div className="corvus-scroll" style={{ flex: 1, overflowY: 'auto' }}>
           {viewMode === 'agenda' ? (
-            selectedDate && eventsFor(selectedDate).length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {eventsFor(selectedDate).map((ev, idx) => (
-                  <div key={ev.id || idx} style={{
-                    background: 'rgba(0,200,180,0.06)', border: '1px solid rgba(0,200,180,0.12)',
-                    borderRadius: 10, padding: '8px 10px',
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: ev.notes ? 4 : 0 }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: 'rgba(220,230,255,0.9)' }}>{ev.title}</span>
-                      {ev.time && <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--c-brand)', background: 'rgba(0,200,180,0.1)', padding: '2px 6px', borderRadius: 99, fontFamily: 'Space Mono' }}>{ev.time}</span>}
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-0.5 space-y-2">
+              {selectedDate && getEventsForDate(selectedDate).length > 0 ? (
+                getEventsForDate(selectedDate).map((ev, idx) => (
+                  <div key={ev.id || idx} className="bg-text-main/5 border border-text-main/10 rounded-md p-2 flex flex-col gap-1.5 animate-in fade-in slide-in-from-right-2 duration-300">
+                    <div className="flex justify-between items-start">
+                      <span className="text-[10px] font-black text-text-main font-display leading-tight">{ev.title}</span>
+                      {ev.time && <span className="text-[8px] text-brand font-mono bg-brand/10 px-1 py-0.5 rounded border border-brand/20">{ev.time}</span>}
                     </div>
-                    {ev.notes && <p style={{ fontSize: 10, color: 'rgba(220,230,255,0.5)', lineHeight: 1.5, margin: 0 }}>{ev.notes}</p>}
+                    {ev.notes && <p className="text-[8px] text-text-main/60 font-label leading-relaxed">{ev.notes}</p>}
                     {ev.reminderTime && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginTop: 6 }}>
-                        <Bell size={9} style={{ color: 'var(--c-brand)' }} />
-                        <span style={{ fontSize: 9, color: 'rgba(0,200,180,0.8)', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Reminder: {ev.reminderTime}</span>
+                      <div className="flex items-center gap-1 mt-1 text-brand/80">
+                        <Bell size={8} className="animate-pulse" />
+                        <span className="text-[7px] uppercase tracking-widest font-black">Reminder: {ev.reminderTime}</span>
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                <span className="panel-label">No events</span>
-              </div>
-            )
+                ))
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-text-main/20 gap-2">
+                  <CalendarIcon size={16} className="opacity-50" />
+                  <span className="text-[8px] uppercase tracking-widest font-black font-label text-center">No Events Scheduled</span>
+                </div>
+              )}
+            </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {/* Title */}
-              <div>
-                <label style={labelStyle}>Title</label>
-                <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Event title..." style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = 'var(--c-border-active)'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.07)'}
-                />
-              </div>
-              {/* Times */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                {[['Start', startTime, setStartTime], ['End', endTime, setEndTime]].map(([label, val, setter]) => (
-                  <div key={label as string}>
-                    <label style={labelStyle}>{label as string}</label>
-                    <input type="time" value={val as string} onChange={e => (setter as any)(e.target.value)} style={{ ...inputStyle, colorScheme: 'dark' }}
-                      onFocus={e => e.target.style.borderColor = 'var(--c-border-active)'}
-                      onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.07)'}
+            <>
+              <div className="space-y-2 flex-1 overflow-y-auto custom-scrollbar pr-0.5">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 px-0.5">
+                    <CalendarIcon size={8} className="text-brand/40" />
+                    <span className="text-[7px] font-black text-text-main/20 uppercase tracking-widest font-label">Header</span>
+                  </div>
+                  <input 
+                    type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="ENTRY_TITLE..."
+                    className="w-full bg-text-main/5 border border-text-main/5 rounded-md px-2 py-1 text-[10px] text-text-main font-black font-mono placeholder:text-text-main/5 focus:outline-none focus:border-brand/40 transition-all"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-1.5">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1 px-0.5">
+                      <Clock size={8} className="text-brand/40" />
+                      <span className="text-[7px] font-black text-text-main/20 uppercase tracking-widest font-label">Start</span>
+                    </div>
+                    <input 
+                      type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)}
+                      className="w-full bg-text-main/5 border border-text-main/5 rounded-md px-1.5 py-0.5 text-[9px] text-text-main focus:outline-none focus:border-brand/40 [color-scheme:dark] font-black font-mono"
                     />
                   </div>
-                ))}
-              </div>
-              {/* Notes */}
-              <div>
-                <label style={labelStyle}>Notes</label>
-                <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2} placeholder="Optional notes..." style={{ ...inputStyle, resize: 'none' }}
-                  onFocus={e => e.target.style.borderColor = 'var(--c-border-active)'}
-                  onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.07)'}
-                />
-              </div>
-              {/* Reminder toggle */}
-              <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 8, padding: 8 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Bell size={11} style={{ color: pushEnabled ? 'var(--c-brand)' : 'rgba(220,230,255,0.2)' }} />
-                    <span style={{ fontSize: 9, fontWeight: 700, color: 'rgba(220,230,255,0.4)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Push Reminder</span>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1 px-0.5">
+                      <Clock size={8} className="text-brand/40" />
+                      <span className="text-[7px] font-black text-text-main/20 uppercase tracking-widest font-label">End</span>
+                    </div>
+                    <input 
+                      type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)}
+                      className="w-full bg-text-main/5 border border-text-main/5 rounded-md px-1.5 py-0.5 text-[9px] text-text-main focus:outline-none focus:border-brand/40 [color-scheme:dark] font-black font-mono"
+                    />
                   </div>
-                  <button onClick={() => setPushEnabled(!pushEnabled)} style={{
-                    width: 28, height: 15, borderRadius: 99, border: 'none', cursor: 'pointer', padding: 2,
-                    background: pushEnabled ? 'var(--c-brand)' : 'rgba(255,255,255,0.1)', transition: '200ms ease',
-                    display: 'flex', alignItems: 'center',
-                  }}>
-                    <span style={{ width: 11, height: 11, borderRadius: '50%', background: '#fff', display: 'block', transform: pushEnabled ? 'translateX(13px)' : 'translateX(0)', transition: '200ms ease' }} />
-                  </button>
                 </div>
-                {pushEnabled && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                    <Clock size={9} style={{ color: 'rgba(0,200,180,0.6)' }} />
-                    <input type="time" value={reminderTime} onChange={e => setReminderTime(e.target.value)} style={{ ...inputStyle, flex: 1, colorScheme: 'dark', color: 'var(--c-brand)' }} />
+
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-1.5 px-0.5">
+                    <AlignLeft size={8} className="text-brand/40" />
+                    <span className="text-[7px] font-black text-text-main/20 uppercase tracking-widest font-label">Description</span>
                   </div>
-                )}
+                  <textarea 
+                    value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} placeholder="METADATA..."
+                    className="w-full bg-text-main/5 border border-text-main/5 rounded-md px-2 py-1 text-[9px] text-text-main font-black font-mono placeholder:text-text-main/5 focus:outline-none focus:border-brand/40 transition-all resize-none"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5 p-2 bg-text-main/5 rounded-md border border-text-main/5 transition-all">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Bell size={10} className={pushEnabled ? "text-brand animate-pulse" : "text-text-main/10"} />
+                      <span className="text-[8px] font-black text-text-main/30 uppercase tracking-tighter font-label">Push_Reminder</span>
+                    </div>
+                    <button 
+                      onClick={() => setPushEnabled(!pushEnabled)}
+                      className={`w-6 h-3 rounded-full p-0.5 transition-colors focus:outline-none ${pushEnabled ? 'bg-brand' : 'bg-text-main/10'}`}
+                    >
+                      <div className={`w-2 h-2 bg-white rounded-full transition-transform ${pushEnabled ? 'translate-x-2.5' : 'translate-x-0'}`} />
+                    </button>
+                  </div>
+                  {pushEnabled && (
+                    <div className="flex items-center gap-2 mt-0.5 border-t border-text-main/5 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <Clock size={8} className="text-brand/40" />
+                      <span className="text-[7px] font-black text-text-main/20 uppercase tracking-widest font-label w-8">Time</span>
+                      <input 
+                        type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)}
+                        className="flex-1 bg-text-main/5 border border-text-main/5 rounded px-1.5 py-0.5 text-[9px] text-brand focus:outline-none focus:border-brand/40 [color-scheme:dark] font-black font-mono"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
-              {/* Save */}
-              <button
-                onClick={handleSave} disabled={isLoading || !title}
-                style={{
-                  background: isLoading || !title ? 'rgba(0,200,180,0.3)' : 'var(--c-brand)',
-                  color: '#0a0e1a', fontWeight: 700, fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase',
-                  padding: '8px 0', borderRadius: 8, border: 'none', cursor: isLoading || !title ? 'not-allowed' : 'pointer',
-                  width: '100%', transition: '200ms ease',
-                  boxShadow: isLoading || !title ? 'none' : '0 4px 16px rgba(0,200,180,0.3)',
-                }}
-                onMouseEnter={e => { if (!isLoading && title) e.currentTarget.style.boxShadow = '0 6px 24px rgba(0,200,180,0.5)'; }}
-                onMouseLeave={e => e.currentTarget.style.boxShadow = isLoading || !title ? 'none' : '0 4px 16px rgba(0,200,180,0.3)'}
+              <button 
+                onClick={handleSave} disabled={isLoading}
+                className="mt-2 w-full bg-brand text-slate-950 font-black py-1.5 rounded-md text-[9px] uppercase tracking-widest transition-all active:scale-95 shadow-[0_5px_15px_rgb(var(--brand-rgb)/0.3)] hover:shadow-[0_0_20px_rgb(var(--brand-rgb)/0.6)]"
               >
-                {isLoading ? 'Saving...' : 'Save Event'}
+                {isLoading ? <span className="animate-pulse font-mono">[SAVING...]</span> : <span>Save_Agenda</span>}
               </button>
-            </div>
+            </>
           )}
         </div>
       </div>
