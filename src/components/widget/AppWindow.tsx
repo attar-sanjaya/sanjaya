@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { X, Send, Terminal, Cpu, Mic, MicOff, ChevronDown } from 'lucide-react';
 
 import CalendarApp from './CalendarApp';
+import SettingsApp from './SettingsApp';
+
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -16,14 +18,20 @@ interface AppWindowProps {
   activeEvent?: any;
   calendarEvents?: any[];
   onAddEvent?: (eventData: any) => void;
+  currentBg?: any;
+  onSelectBg?: (bg: any) => void;
+  backgrounds?: any[];
 }
 
-const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAction, activeEvent, calendarEvents, onAddEvent }) => {
+const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAction, activeEvent, calendarEvents, onAddEvent, currentBg, onSelectBg, backgrounds }) => {
+
   const isCalendar = app === 'Calendar';
   const isMind = app === 'Mind';
+  const isSettings = app === 'Settings';
+
   
-  const initialWidth = isMind ? 550 : 350;
-  const initialHeight = isMind ? 500 : 350;
+  const initialWidth = isMind ? 550 : isSettings ? 600 : 350;
+  const initialHeight = isMind ? 500 : isSettings ? 450 : 350;
 
   const offset = index * 30;
   const initialX = typeof window !== 'undefined' ? Math.max(20, (window.innerWidth - initialWidth) / 2) + offset : 100 + offset;
@@ -435,7 +443,14 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
                calendarEvents={calendarEvents}
                onAddEvent={onAddEvent}
              />
+          ) : isSettings ? (
+            <SettingsApp 
+              currentBg={currentBg}
+              onSelectBg={onSelectBg!}
+              backgrounds={backgrounds!}
+            />
           ) : isMind ? (
+
             <div className="h-full flex flex-col p-4 font-label relative">
               {/* Messages */}
               <div 

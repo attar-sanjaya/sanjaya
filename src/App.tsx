@@ -23,11 +23,11 @@ const BACKGROUNDS = [
 
 const App: React.FC = () => {
   const [activeApps, setActiveApps] = useState<string[]>([]);
-  const [bgIndex, setBgIndex] = useState(0);
+  const [currentBg, setCurrentBg] = useState(BACKGROUNDS[0]);
   const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
   const [activeEvent, setActiveEvent] = useState<any>(null);
 
-  const currentBg = BACKGROUNDS[bgIndex];
+
 
   useEffect(() => {
     const root = document.documentElement;
@@ -36,7 +36,8 @@ const App: React.FC = () => {
     root.style.setProperty('--text-rgb', currentBg.palette.text);
   }, [currentBg.palette]);
 
-  const toggleBackground = () => setBgIndex((prev) => (prev + 1) % BACKGROUNDS.length);
+  const toggleBackground = () => toggleApp('Settings', true);
+
 
   const toggleApp = useCallback((app: string, forceOpen?: boolean) => {
     setActiveApps((prev) => {
@@ -113,6 +114,9 @@ const App: React.FC = () => {
             activeEvent={app === 'Calendar' ? activeEvent : null}
             calendarEvents={calendarEvents}
             onAddEvent={addManualEvent}
+            currentBg={currentBg}
+            onSelectBg={setCurrentBg}
+            backgrounds={BACKGROUNDS}
           />
         ))}
       </main>
