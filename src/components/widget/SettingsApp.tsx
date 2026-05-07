@@ -225,6 +225,60 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgr
             </div>
           </div>
         )}
+
+        {activeTab === 'layout' && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="space-y-4">
+              <div className="p-4 bg-text-main/5 rounded-xl border border-text-main/5 space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-text-main/40">Glassmorphism_Intensity</span>
+                    <span className="text-[8px] font-mono text-brand">Adaptive</span>
+                  </div>
+                  <input 
+                    type="range" min="0" max="40" defaultValue="20"
+                    onChange={(e) => document.documentElement.style.setProperty('--glass-blur', `${e.target.value}px`)}
+                    className="w-full h-1 bg-text-main/10 rounded-lg appearance-none cursor-pointer accent-brand"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-text-main/40">Window_Opacity</span>
+                    <span className="text-[8px] font-mono text-brand">Dynamic</span>
+                  </div>
+                  <input 
+                    type="range" min="10" max="90" defaultValue="40"
+                    onChange={(e) => document.documentElement.style.setProperty('--glass-opacity', `${e.target.value / 100}`)}
+                    className="w-full h-1 bg-text-main/10 rounded-lg appearance-none cursor-pointer accent-brand"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button className="flex flex-col items-center gap-2 p-4 bg-text-main/5 border border-text-main/5 rounded-xl hover:border-brand/30 transition-all group">
+                  <div className="w-10 h-6 border-2 border-text-main/20 rounded relative">
+                    <div className="absolute bottom-1 inset-x-1 h-1 bg-brand opacity-40 group-hover:opacity-100" />
+                  </div>
+                  <span className="text-[7px] font-black uppercase tracking-widest text-text-main/40">Dock_Bottom</span>
+                </button>
+                <button className="flex flex-col items-center gap-2 p-4 bg-text-main/5 border border-text-main/5 rounded-xl opacity-30 cursor-not-allowed">
+                  <div className="w-10 h-6 border-2 border-text-main/20 rounded relative">
+                    <div className="absolute left-1 inset-y-1 w-1 bg-text-main/20" />
+                  </div>
+                  <span className="text-[7px] font-black uppercase tracking-widest text-text-main/40">Dock_Left</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-brand/5 border border-brand/20 rounded-lg">
+              <Sparkles size={10} className="text-brand" />
+              <p className="text-[8px] text-brand/70 font-bold leading-relaxed uppercase tracking-tighter">
+                Layout configurations are applied globally. Advanced docking positions are currently in neural-calibration.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

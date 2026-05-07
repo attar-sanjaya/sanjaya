@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --glass-blur: 24px;
+  --glass-opacity: 0.4;
+}
+
 @layer base {
   body {
     @apply bg-black text-text-main antialiased overflow-hidden font-sans;
@@ -13,7 +18,9 @@
 }
 
 .glass-morphism {
-  @apply backdrop-blur-xl bg-surface/40 border border-text-main/10 shadow-2xl;
+  backdrop-filter: blur(var(--glass-blur));
+  background-color: rgb(var(--surface-rgb) / var(--glass-opacity));
+  @apply border border-text-main/10 shadow-2xl;
 }
 
 .dock-item {

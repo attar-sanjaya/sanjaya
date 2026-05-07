@@ -415,7 +415,7 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
       <div className="absolute inset-y-0 -right-1 w-2 cursor-ew-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'right')} />
       <div className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'bottomright')} />
 
-      <div className="w-full h-full bg-surface/50 backdrop-blur-3xl rounded-xl flex flex-col overflow-hidden border border-text-main/10 animate-in fade-in zoom-in duration-300">
+      <div className="w-full h-full rounded-xl flex flex-col overflow-hidden glass-morphism animate-in fade-in zoom-in duration-300">
         <div 
           onMouseDown={handleMouseDown}
           className="h-9 flex items-center justify-between px-3 bg-text-main/5 border-t border-text-main/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] cursor-grab active:cursor-grabbing hover:bg-text-main/10 transition-colors shrink-0 group/header"
