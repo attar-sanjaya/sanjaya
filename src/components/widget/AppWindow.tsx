@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, Send, Terminal, Cpu, Mic, MicOff } from 'lucide-react';
+import { X, Send, Terminal, Cpu, Mic, MicOff, ChevronDown } from 'lucide-react';
+
 import CalendarApp from './CalendarApp';
 
 interface Message {
@@ -47,9 +48,13 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   const [isListening, setIsListening] = useState(false);
   const [voiceMode, setVoiceMode] = useState(false);
   const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
+
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
   const windowRef = useRef<HTMLDivElement>(null);
   const dragStartPos = useRef({ x: 0, y: 0 });
   const resizeStartSize = useRef({ width: 0, height: 0, x: 0, y: 0 });
@@ -73,7 +78,21 @@ const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAct
   }, []);
 
   const scrollToBottom = () => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  useEffect(() => { if (isMind) scrollToBottom(); }, [messages, isTyping, isMind]);
+  useEffect(() => { 
+    if (isMind) {
+      scrollToBottom();
+      setShowScrollBottom(false);
+    }
+  }, [messages, isTyping, isMind]);
+
+  const handleScroll = () => {
+    if (chatContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+      // Show button if more than 100px from bottom
+      setShowScrollBottom(scrollHeight - scrollTop - clientHeight > 100);
+    }
+  };
+
 
   // Auto-resize textarea as user types
   useEffect(() => {
@@ -419,7 +438,11 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
           ) : isMind ? (
             <div className="h-full flex flex-col p-4 font-label">
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 mb-4">
+              <div 
+                ref={chatContainerRef}
+                onScroll={handleScroll}
+                className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 mb-4 relative"
+              >
                 {messages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
                     <div className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -451,6 +474,16 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
                   </div>
                 )}
                 <div ref={chatEndRef} />
+
+                {/* Scroll to Bottom Button */}
+                {showScrollBottom && (
+                  <button
+                    onClick={scrollToBottom}
+                    className="fixed bottom-24 right-8 w-8 h-8 rounded-full bg-surface/80 backdrop-blur-xl border border-text-main/10 text-text-main flex items-center justify-center shadow-2xl hover:bg-brand/20 hover:border-brand/40 transition-all animate-ui-pop z-50"
+                  >
+                    <ChevronDown size={16} />
+                  </button>
+                )}
               </div>
               
               {/* Bottom Input Area */}
@@ -514,7 +547,7 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
                     }}
                     placeholder="Execute command... (Shift+Enter for new line)"
                     rows={1}
-                    className="w-full bg-text-main/5 border border-text-main/10 rounded-xl pl-4 pr-20 py-3 text-sm text-text-main font-medium placeholder:text-text-main/20 focus:outline-none focus:border-brand/40 transition-all shadow-inner resize-none overflow-y-auto"
+                    className="w-full bg-text-main/5 border border-text-main/10 rounded-xl pl-4 pr-20 py-3 text-sm text-text-main font-medium placeholder:text-text-main/20 focus:outline-none focus:border-brand/40 transition-all shadow-inner resize-none overflow-y-auto custom-scrollbar"
                     style={{ maxHeight: '120px' }}
                   />
                   <div className="absolute right-2 bottom-2 flex items-center gap-1">
