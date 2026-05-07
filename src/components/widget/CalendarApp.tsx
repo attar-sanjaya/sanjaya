@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, Bell, X, Calendar as CalendarIcon, Clock, AlignLeft } from 'lucide-react';
+import InteractiveTimePicker from './InteractiveTimePicker';
+
 
 interface CalendarAppProps {
   onToggleExpand?: (expanded: boolean) => void;
@@ -241,26 +243,16 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand, activeEvent, 
                 </div>
 
                 <div className="grid grid-cols-2 gap-1.5">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-1 px-0.5">
-                      <Clock size={8} className="text-brand/40" />
-                      <span className="text-[7px] font-black text-text-main/20 uppercase tracking-widest font-label">Start</span>
-                    </div>
-                    <input 
-                      type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)}
-                      className="w-full bg-text-main/5 border border-text-main/5 rounded-md px-1.5 py-0.5 text-[9px] text-text-main focus:outline-none focus:border-brand/40 [color-scheme:dark] font-black font-mono"
-                    />
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-1 px-0.5">
-                      <Clock size={8} className="text-brand/40" />
-                      <span className="text-[7px] font-black text-text-main/20 uppercase tracking-widest font-label">End</span>
-                    </div>
-                    <input 
-                      type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)}
-                      className="w-full bg-text-main/5 border border-text-main/5 rounded-md px-1.5 py-0.5 text-[9px] text-text-main focus:outline-none focus:border-brand/40 [color-scheme:dark] font-black font-mono"
-                    />
-                  </div>
+                  <InteractiveTimePicker 
+                    label="Start"
+                    value={startTime}
+                    onChange={setStartTime}
+                  />
+                  <InteractiveTimePicker 
+                    label="End"
+                    value={endTime}
+                    onChange={setEndTime}
+                  />
                 </div>
 
                 <div className="space-y-0.5">
@@ -288,12 +280,11 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand, activeEvent, 
                     </button>
                   </div>
                   {pushEnabled && (
-                    <div className="flex items-center gap-2 mt-0.5 border-t border-text-main/5 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
-                      <Clock size={8} className="text-brand/40" />
-                      <span className="text-[7px] font-black text-text-main/20 uppercase tracking-widest font-label w-8">Time</span>
-                      <input 
-                        type="time" value={reminderTime} onChange={(e) => setReminderTime(e.target.value)}
-                        className="flex-1 bg-text-main/5 border border-text-main/5 rounded px-1.5 py-0.5 text-[9px] text-brand focus:outline-none focus:border-brand/40 [color-scheme:dark] font-black font-mono"
+                    <div className="flex-1 mt-0.5 border-t border-text-main/5 pt-2 animate-in fade-in slide-in-from-top-1 duration-200">
+                      <InteractiveTimePicker 
+                        label="Reminder Time"
+                        value={reminderTime}
+                        onChange={setReminderTime}
                       />
                     </div>
                   )}
