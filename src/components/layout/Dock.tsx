@@ -51,7 +51,7 @@ const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick, pos
     )}
   </button>
 );
-
+interface DockProps {
   activeApps: string[];
   toggleApp: (app: string) => void;
   position: 'bottom' | 'left';
