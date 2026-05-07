@@ -5,6 +5,10 @@ interface SettingsAppProps {
   currentBg: any;
   onSelectBg: (bg: any) => void;
   backgrounds: any[];
+  dockPosition: 'bottom' | 'left';
+  onSetDockPosition: (pos: 'bottom' | 'left') => void;
+  uiStyle: 'crystal' | 'neural' | 'clay' | 'carbon';
+  onSetUiStyle: (style: 'crystal' | 'neural' | 'clay' | 'carbon') => void;
 }
 
 const THEME_PRESETS = [
@@ -16,7 +20,9 @@ const THEME_PRESETS = [
   { name: 'Slate Monochrome', brand: '149 165 166', surface: '25 25 25' },
 ];
 
-const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgrounds }) => {
+const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgrounds, dockPosition, onSetDockPosition, uiStyle, onSetUiStyle }) => {
+
+
   const [activeTab, setActiveTab] = useState('wallpaper');
   const [isExtracting, setIsExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -229,6 +235,30 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgr
         {activeTab === 'layout' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="space-y-4">
+              {/* UI Architecture Selection */}
+              <div className="space-y-3">
+                <span className="text-[8px] font-black uppercase tracking-widest text-text-main/20 ml-1">Interface_Architecture</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'crystal', name: 'Crystal Core', icon: <Sparkles size={14} /> },
+                    { id: 'neural', name: 'Neural Surface', icon: <Cpu size={14} /> },
+                    { id: 'clay', name: 'Clay Volumetric', icon: <Layout size={14} /> },
+                    { id: 'carbon', name: 'Stellar Carbon', icon: <Terminal size={14} /> },
+                  ].map((style) => (
+                    <button
+                      key={style.id}
+                      onClick={() => onSetUiStyle(style.id as any)}
+                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${uiStyle === style.id ? 'bg-brand/10 border-brand' : 'bg-text-main/5 border-text-main/5 hover:border-text-main/20'}`}
+                    >
+                      <div className={`p-1.5 rounded-lg ${uiStyle === style.id ? 'text-brand' : 'text-text-main/40'}`}>
+                        {style.icon}
+                      </div>
+                      <span className={`text-[8px] font-black uppercase tracking-widest ${uiStyle === style.id ? 'text-brand' : 'text-text-main/60'}`}>{style.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="p-4 bg-text-main/5 rounded-xl border border-text-main/5 space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
@@ -256,17 +286,23 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgr
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <button className="flex flex-col items-center gap-2 p-4 bg-text-main/5 border border-text-main/5 rounded-xl hover:border-brand/30 transition-all group">
+                <button 
+                  onClick={() => onSetDockPosition('bottom')}
+                  className={`flex flex-col items-center gap-2 p-4 bg-text-main/5 border rounded-xl transition-all group ${dockPosition === 'bottom' ? 'border-brand' : 'border-text-main/5 hover:border-brand/30'}`}
+                >
                   <div className="w-10 h-6 border-2 border-text-main/20 rounded relative">
                     <div className="absolute bottom-1 inset-x-1 h-1 bg-brand opacity-40 group-hover:opacity-100" />
                   </div>
-                  <span className="text-[7px] font-black uppercase tracking-widest text-text-main/40">Dock_Bottom</span>
+                  <span className={`text-[7px] font-black uppercase tracking-widest ${dockPosition === 'bottom' ? 'text-brand' : 'text-text-main/40'}`}>Dock_Bottom</span>
                 </button>
-                <button className="flex flex-col items-center gap-2 p-4 bg-text-main/5 border border-text-main/5 rounded-xl opacity-30 cursor-not-allowed">
+                <button 
+                  onClick={() => onSetDockPosition('left')}
+                  className={`flex flex-col items-center gap-2 p-4 bg-text-main/5 border rounded-xl transition-all group ${dockPosition === 'left' ? 'border-brand' : 'border-text-main/5 hover:border-brand/30'}`}
+                >
                   <div className="w-10 h-6 border-2 border-text-main/20 rounded relative">
-                    <div className="absolute left-1 inset-y-1 w-1 bg-text-main/20" />
+                    <div className="absolute left-1 inset-y-1 w-1 bg-brand opacity-40 group-hover:opacity-100" />
                   </div>
-                  <span className="text-[7px] font-black uppercase tracking-widest text-text-main/40">Dock_Left</span>
+                  <span className={`text-[7px] font-black uppercase tracking-widest ${dockPosition === 'left' ? 'text-brand' : 'text-text-main/40'}`}>Dock_Left</span>
                 </button>
               </div>
             </div>
@@ -274,7 +310,7 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgr
             <div className="flex items-center gap-3 p-3 bg-brand/5 border border-brand/20 rounded-lg">
               <Sparkles size={10} className="text-brand" />
               <p className="text-[8px] text-brand/70 font-bold leading-relaxed uppercase tracking-tighter">
-                Layout configurations are applied globally. Advanced docking positions are currently in neural-calibration.
+                Layout configurations are applied globally. Dock positioning affects the primary navigation stack.
               </p>
             </div>
           </div>

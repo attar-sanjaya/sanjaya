@@ -21,9 +21,15 @@ interface AppWindowProps {
   currentBg?: any;
   onSelectBg?: (bg: any) => void;
   backgrounds?: any[];
+  dockPosition?: 'bottom' | 'left';
+  onSetDockPosition?: (pos: 'bottom' | 'left') => void;
+  uiStyle?: 'crystal' | 'neural' | 'clay' | 'carbon';
+  onSetUiStyle?: (style: 'crystal' | 'neural' | 'clay' | 'carbon') => void;
 }
 
-const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAction, activeEvent, calendarEvents, onAddEvent, currentBg, onSelectBg, backgrounds }) => {
+const AppWindow: React.FC<AppWindowProps> = ({ app, index, onClose, onExecuteAction, activeEvent, calendarEvents, onAddEvent, currentBg, onSelectBg, backgrounds, dockPosition, onSetDockPosition, uiStyle, onSetUiStyle }) => {
+
+
 
   const isCalendar = app === 'Calendar';
   const isMind = app === 'Mind';
@@ -415,7 +421,13 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
       <div className="absolute inset-y-0 -right-1 w-2 cursor-ew-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'right')} />
       <div className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize z-50" onMouseDown={(e) => handleResizeStart(e, 'bottomright')} />
 
-      <div className="w-full h-full rounded-xl flex flex-col overflow-hidden glass-morphism animate-in fade-in zoom-in duration-300">
+      <div className={`w-full h-full flex flex-col overflow-hidden animate-in fade-in zoom-in duration-300 ${
+        uiStyle === 'crystal' ? 'style-crystal rounded-xl' :
+        uiStyle === 'neural' ? 'style-neural rounded-xl' :
+        uiStyle === 'clay' ? 'style-clay' :
+        'style-carbon rounded-xl'
+      }`}>
+
         <div 
           onMouseDown={handleMouseDown}
           className="h-9 flex items-center justify-between px-3 bg-text-main/5 border-t border-text-main/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] cursor-grab active:cursor-grabbing hover:bg-text-main/10 transition-colors shrink-0 group/header"
@@ -448,6 +460,10 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
               currentBg={currentBg}
               onSelectBg={onSelectBg!}
               backgrounds={backgrounds!}
+              dockPosition={dockPosition!}
+              onSetDockPosition={onSetDockPosition!}
+              uiStyle={uiStyle!}
+              onSetUiStyle={onSetUiStyle!}
             />
           ) : isMind ? (
 

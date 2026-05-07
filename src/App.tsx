@@ -26,6 +26,10 @@ const App: React.FC = () => {
   const [currentBg, setCurrentBg] = useState(BACKGROUNDS[0]);
   const [calendarEvents, setCalendarEvents] = useState<any[]>([]);
   const [activeEvent, setActiveEvent] = useState<any>(null);
+  const [dockPosition, setDockPosition] = useState<'bottom' | 'left'>('bottom');
+  const [uiStyle, setUiStyle] = useState<'crystal' | 'neural' | 'clay' | 'carbon'>('crystal');
+
+
 
 
 
@@ -117,13 +121,23 @@ const App: React.FC = () => {
             currentBg={currentBg}
             onSelectBg={setCurrentBg}
             backgrounds={BACKGROUNDS}
+            dockPosition={dockPosition}
+            onSetDockPosition={setDockPosition}
+            uiStyle={uiStyle}
+            onSetUiStyle={setUiStyle}
           />
         ))}
       </main>
 
-      <footer className="w-full flex justify-center pb-2 z-50">
-        <Dock activeApps={activeApps} toggleApp={toggleApp} />
-      </footer>
+      {dockPosition === 'bottom' ? (
+        <footer className="w-full flex justify-center pb-2 z-50">
+          <Dock activeApps={activeApps} toggleApp={toggleApp} position="bottom" uiStyle={uiStyle} />
+        </footer>
+      ) : (
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 z-50">
+          <Dock activeApps={activeApps} toggleApp={toggleApp} position="left" uiStyle={uiStyle} />
+        </div>
+      )}
     </div>
   );
 };

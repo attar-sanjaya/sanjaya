@@ -12,10 +12,14 @@ interface DockItemProps {
   label: string;
   isActive?: boolean;
   onClick: () => void;
+  position: 'bottom' | 'left';
 }
 
-const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick }) => (
-  <button onClick={onClick} className="dock-item group relative px-3 py-1.5 focus:outline-none">
+const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick, position }) => (
+  <button onClick={onClick} className={cn(
+    "dock-item group relative px-3 py-1.5 focus:outline-none flex",
+    position === 'left' ? "flex-row items-center gap-3" : "flex-col items-center"
+  )}>
     {isActive && (
       <div className="absolute inset-0 flex items-center justify-center -z-10 pointer-events-none">
         <div className="w-8 h-8 bg-brand/30 blur-xl rounded-full animate-pulse transition-all duration-1000" />
@@ -31,13 +35,17 @@ const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick }) =
       {icon}
     </div>
     <span className={cn(
-      "text-[9px] font-black uppercase tracking-[0.1em] mt-1.5 block text-center transition-all duration-300 font-label",
+      "text-[9px] font-black uppercase tracking-[0.1em] block transition-all duration-300 font-label",
+      position === 'bottom' ? "mt-1.5 text-center" : "text-left",
       isActive ? "text-brand opacity-100" : "text-text-main/30 group-hover:text-text-main/70"
     )}>
       {label}
     </span>
     {isActive && (
-      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-0.5 bg-brand rounded-full shadow-[0_0_8px_rgb(var(--brand-rgb)/0.8)]" />
+      <div className={cn(
+        "absolute bg-brand rounded-full shadow-[0_0_8px_rgb(var(--brand-rgb)/0.8)]",
+        position === 'bottom' ? "-bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-0.5" : "left-1 top-1/2 -translate-y-1/2 w-0.5 h-3"
+      )} />
     )}
   </button>
 );
@@ -45,15 +53,19 @@ const DockItem: React.FC<DockItemProps> = ({ icon, label, isActive, onClick }) =
 interface DockProps {
   activeApps: string[];
   toggleApp: (app: string) => void;
+  position: 'bottom' | 'left';
 }
 
-const Dock: React.FC<DockProps> = ({ activeApps, toggleApp }) => {
+const Dock: React.FC<DockProps> = ({ activeApps, toggleApp, position }) => {
   return (
-    <div className="mb-4 flex items-end gap-1 px-3 pt-1.5 pb-1 bg-surface/40 backdrop-blur-2xl border border-text-main/10 rounded-2xl shadow-2xl">
-      <DockItem icon={<Globe2 size={18} strokeWidth={2} />} label="Mind" isActive={activeApps.includes('Mind')} onClick={() => toggleApp('Mind')} />
-      <DockItem icon={<Share2 size={18} strokeWidth={2} />} label="Network" isActive={activeApps.includes('Network')} onClick={() => toggleApp('Network')} />
-      <DockItem icon={<StickyNote size={18} strokeWidth={2} />} label="Notes" isActive={activeApps.includes('Notes')} onClick={() => toggleApp('Notes')} />
-      <DockItem icon={<CalendarDays size={18} strokeWidth={2} />} label="Calendar" isActive={activeApps.includes('Calendar')} onClick={() => toggleApp('Calendar')} />
+    <div className={cn(
+      "flex items-end gap-1 px-3 py-1.5 bg-surface/40 backdrop-blur-2xl border border-text-main/10 rounded-2xl shadow-2xl transition-all duration-500",
+      position === 'left' ? "flex-col items-stretch" : "mb-4"
+    )}>
+      <DockItem icon={<Globe2 size={18} strokeWidth={2} />} label="Mind" isActive={activeApps.includes('Mind')} onClick={() => toggleApp('Mind')} position={position} />
+      <DockItem icon={<Share2 size={18} strokeWidth={2} />} label="Network" isActive={activeApps.includes('Network')} onClick={() => toggleApp('Network')} position={position} />
+      <DockItem icon={<StickyNote size={18} strokeWidth={2} />} label="Notes" isActive={activeApps.includes('Notes')} onClick={() => toggleApp('Notes')} position={position} />
+      <DockItem icon={<CalendarDays size={18} strokeWidth={2} />} label="Calendar" isActive={activeApps.includes('Calendar')} onClick={() => toggleApp('Calendar')} position={position} />
     </div>
   );
 };

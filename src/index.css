@@ -17,10 +17,35 @@
   }
 }
 
-.glass-morphism {
+/* CRYSTAL CORE (Glassmorphism) */
+.style-crystal {
   backdrop-filter: blur(var(--glass-blur));
   background-color: rgb(var(--surface-rgb) / var(--glass-opacity));
   @apply border border-text-main/10 shadow-2xl;
+}
+
+/* NEURAL SURFACE (Neumorphism) */
+.style-neural {
+  background-color: rgb(var(--surface-rgb));
+  box-shadow: 
+    8px 8px 24px rgba(0, 0, 0, 0.5),
+    -4px -4px 12px rgba(255, 255, 255, 0.03);
+  @apply border border-white/5;
+}
+
+/* CLAY VOLUMETRIC (Claymorphism) */
+.style-clay {
+  background-color: rgb(var(--surface-rgb));
+  box-shadow: 
+    inset 4px 4px 12px rgba(255, 255, 255, 0.05),
+    inset -4px -4px 12px rgba(0, 0, 0, 0.3),
+    0 15px 30px rgba(0, 0, 0, 0.4);
+  @apply border border-white/5 rounded-[2.5rem];
+}
+
+/* STELLAR CARBON (Minimal High-Tech) */
+.style-carbon {
+  @apply bg-slate-950/90 border border-brand/30 shadow-[0_0_30px_rgba(var(--brand-rgb),0.1)];
 }
 
 .dock-item {
