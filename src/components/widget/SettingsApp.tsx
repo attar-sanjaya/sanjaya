@@ -249,7 +249,7 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgr
                   </div>
                   <input 
                     type="range" min="10" max="90" defaultValue="40"
-                    onChange={(e) => document.documentElement.style.setProperty('--glass-opacity', `${e.target.value / 100}`)}
+                    onChange={(e) => document.documentElement.style.setProperty('--glass-opacity', `${Number(e.target.value) / 100}`)}
                     className="w-full h-1 bg-text-main/10 rounded-lg appearance-none cursor-pointer accent-brand"
                   />
                 </div>
