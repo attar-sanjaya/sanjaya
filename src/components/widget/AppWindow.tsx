@@ -447,7 +447,7 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
           </div>
         </div>
 
-        <div className="flex-1 overflow-hidden flex flex-col bg-black/10 pointer-events-auto relative">
+        <div className={`flex-1 overflow-hidden flex flex-col pointer-events-auto relative ${uiStyle === 'crystal' ? 'bg-black/10' : ''}`}>
           {isCalendar ? (
              <CalendarApp 
                onToggleExpand={(expanded) => setSize(prev => ({ ...prev, width: expanded ? 700 : 350 }))} 

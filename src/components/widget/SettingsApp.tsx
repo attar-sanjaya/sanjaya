@@ -100,7 +100,7 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgr
   };
 
   return (
-    <div className="flex h-full w-full bg-black/20 backdrop-blur-md overflow-hidden font-label">
+    <div className="flex h-full w-full overflow-hidden font-label">
       {/* Sidebar */}
       <div className="w-24 border-r border-text-main/5 flex flex-col items-center py-6 gap-6 bg-text-main/5">
         <button 
