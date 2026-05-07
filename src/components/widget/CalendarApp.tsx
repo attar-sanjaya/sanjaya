@@ -120,6 +120,14 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand, activeEvent, 
     
     // Switch to agenda view to show the newly added event
     setViewMode('agenda');
+    
+    // Ensure parent window knows we are still expanded (or not)
+    onToggleExpand?.(true);
+  };
+
+  const handleCloseSidebar = () => {
+    setIsExpanded(false);
+    onToggleExpand?.(false);
   };
 
   return (
@@ -197,7 +205,7 @@ const CalendarApp: React.FC<CalendarAppProps> = ({ onToggleExpand, activeEvent, 
                   <Plus size={12} strokeWidth={3} />
                 </button>
               )}
-              <button onClick={() => setIsExpanded(false)} className="p-0.5 hover:bg-text-main/5 rounded text-text-main/20 hover:text-text-main transition-colors">
+              <button onClick={handleCloseSidebar} className="p-0.5 hover:bg-text-main/5 rounded text-text-main/20 hover:text-text-main transition-colors">
                 <X size={12} />
               </button>
             </div>

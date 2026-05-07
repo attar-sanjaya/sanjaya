@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ChevronUp, ChevronDown, Clock } from 'lucide-react';
+import { ChevronUp, ChevronDown, Clock, Info } from 'lucide-react';
 
 interface InteractiveTimePickerProps {
   value: string;
@@ -11,6 +11,7 @@ const InteractiveTimePicker: React.FC<InteractiveTimePickerProps> = ({ value, on
   const [isOpen, setIsOpen] = useState(false);
   const [hour, setHour] = useState('12');
   const [minute, setMinute] = useState('00');
+  const [is24h, setIs24h] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,11 +54,41 @@ const InteractiveTimePicker: React.FC<InteractiveTimePickerProps> = ({ value, on
     updateTime(hour, mStr);
   };
 
+  const togglePeriod = () => {
+    let h = parseInt(hour);
+    if (h < 12) h += 12;
+    else h -= 12;
+    const hStr = h.toString().padStart(2, '0');
+    setHour(hStr);
+    updateTime(hStr, minute);
+  };
+
+  const getDisplayTime = () => {
+    if (is24h) return { h: hour, m: minute, p: '' };
+    
+    let h = parseInt(hour);
+    const p = h >= 12 ? 'PM' : 'AM';
+    h = h % 12;
+    if (h === 0) h = 12;
+    return { h: h.toString().padStart(2, '0'), m: minute, p };
+  };
+
+  const display = getDisplayTime();
+
   return (
     <div className="space-y-0.5 relative" ref={containerRef}>
-      <div className="flex items-center gap-1 px-0.5">
-        <Clock size={8} className="text-brand/40" />
-        <span className="text-[7px] font-black text-text-main/20 uppercase tracking-widest font-label">{label}</span>
+      <div className="flex items-center justify-between px-0.5">
+        <div className="flex items-center gap-1">
+          <Clock size={8} className="text-brand/40" />
+          <span className="text-[7px] font-black text-text-main/20 uppercase tracking-widest font-label">{label}</span>
+        </div>
+        <button 
+          onClick={() => setIs24h(!is24h)}
+          className="text-[6px] font-black text-brand/40 hover:text-brand transition-colors uppercase tracking-tighter"
+          title="Toggle 24H/12H"
+        >
+          {is24h ? '24H' : '12H'}
+        </button>
       </div>
       
       <div 
@@ -68,9 +99,10 @@ const InteractiveTimePicker: React.FC<InteractiveTimePickerProps> = ({ value, on
         `}
       >
         <div className="flex items-baseline gap-0.5">
-          <span className="text-[11px] font-black font-mono text-text-main tracking-wider">{hour}</span>
+          <span className="text-[11px] font-black font-mono text-text-main tracking-wider">{display.h}</span>
           <span className="text-[10px] font-black font-mono text-text-main/30">:</span>
-          <span className="text-[11px] font-black font-mono text-text-main tracking-wider">{minute}</span>
+          <span className="text-[11px] font-black font-mono text-text-main tracking-wider">{display.m}</span>
+          {!is24h && <span className="text-[8px] font-black font-display text-brand ml-1 opacity-80">{display.p}</span>}
         </div>
         <div className="flex flex-col gap-0.5 opacity-20">
           <ChevronUp size={8} strokeWidth={4} />
@@ -80,6 +112,13 @@ const InteractiveTimePicker: React.FC<InteractiveTimePickerProps> = ({ value, on
 
       {isOpen && (
         <div className="absolute top-full left-0 w-full mt-1 bg-surface/90 backdrop-blur-2xl border border-brand/20 rounded-lg p-2 z-50 shadow-2xl animate-ui-pop">
+          <div className="flex items-center justify-between mb-2 px-1 border-b border-text-main/5 pb-1">
+            <div className="flex items-center gap-1 opacity-40">
+              <Info size={8} />
+              <span className="text-[6px] font-black uppercase tracking-widest">Adjust {is24h ? 'Military' : 'Standard'} Time</span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-2">
             {/* Hour Picker */}
             <div className="flex flex-col items-center">
@@ -89,7 +128,7 @@ const InteractiveTimePicker: React.FC<InteractiveTimePickerProps> = ({ value, on
               >
                 <ChevronUp size={12} />
               </button>
-              <div className="text-[14px] font-black font-mono text-brand py-1">{hour}</div>
+              <div className="text-[14px] font-black font-mono text-brand py-1">{display.h}</div>
               <button 
                 onClick={(e) => { e.stopPropagation(); adjustHour(-1); }}
                 className="w-full py-1 flex justify-center hover:bg-brand/10 rounded transition-colors text-brand/60"
@@ -107,7 +146,7 @@ const InteractiveTimePicker: React.FC<InteractiveTimePickerProps> = ({ value, on
               >
                 <ChevronUp size={12} />
               </button>
-              <div className="text-[14px] font-black font-mono text-brand py-1">{minute}</div>
+              <div className="text-[14px] font-black font-mono text-brand py-1">{display.m}</div>
               <button 
                 onClick={(e) => { e.stopPropagation(); adjustMinute(-5); }}
                 className="w-full py-1 flex justify-center hover:bg-brand/10 rounded transition-colors text-brand/60"
@@ -117,6 +156,17 @@ const InteractiveTimePicker: React.FC<InteractiveTimePickerProps> = ({ value, on
               <span className="text-[6px] uppercase font-black tracking-widest text-text-main/20 mt-1">MIN</span>
             </div>
           </div>
+
+          {!is24h && (
+            <div className="mt-2 flex justify-center">
+              <button
+                onClick={(e) => { e.stopPropagation(); togglePeriod(); }}
+                className="px-4 py-1 bg-brand/10 hover:bg-brand/20 border border-brand/20 rounded-md text-[9px] font-black text-brand transition-all"
+              >
+                SWITCH TO {display.p === 'AM' ? 'PM' : 'AM'}
+              </button>
+            </div>
+          )}
           
           <div className="grid grid-cols-4 gap-1 mt-2 pt-2 border-t border-text-main/5">
             {['09:00', '12:00', '15:00', '18:00'].map(t => (
@@ -139,9 +189,9 @@ const InteractiveTimePicker: React.FC<InteractiveTimePickerProps> = ({ value, on
               e.stopPropagation();
               setIsOpen(false);
             }}
-            className="w-full mt-2 bg-brand/10 hover:bg-brand/20 text-brand text-[8px] font-black py-1 rounded transition-all uppercase tracking-widest"
+            className="w-full mt-2 bg-brand text-slate-950 text-[8px] font-black py-1.5 rounded transition-all uppercase tracking-widest shadow-[0_2px_10px_rgb(var(--brand-rgb)/0.3)]"
           >
-            Set Time
+            Confirm Time
           </button>
         </div>
       )}
