@@ -1,11 +1,20 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Image as ImageIcon, Palette, Check, Layout, Sparkles } from 'lucide-react';
+import { Upload, Image as ImageIcon, Palette, Check, Layout, Sparkles, Info } from 'lucide-react';
 
 interface SettingsAppProps {
   currentBg: any;
   onSelectBg: (bg: any) => void;
   backgrounds: any[];
 }
+
+const THEME_PRESETS = [
+  { name: 'Aura Cyan', brand: '0 229 255', surface: '10 28 61' },
+  { name: 'Solaris Orange', brand: '255 159 28', surface: '40 25 10' },
+  { name: 'Midnight Purple', brand: '155 89 182', surface: '25 15 40' },
+  { name: 'Forest Green', brand: '46 204 113', surface: '10 30 15' },
+  { name: 'Crimson Red', brand: '231 76 60', surface: '35 10 10' },
+  { name: 'Slate Monochrome', brand: '149 165 166', surface: '25 25 25' },
+];
 
 const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgrounds }) => {
   const [activeTab, setActiveTab] = useState('wallpaper');
@@ -43,14 +52,12 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgr
       let maxCount = 0;
       let dominantColor = { r: 0, g: 0, b: 0 };
 
-      // Sample pixels
-      for (let i = 0; i < imageData.length; i += 16) { // step by 4 pixels (16 values)
+      for (let i = 0; i < imageData.length; i += 16) {
         const r = Math.floor(imageData[i] / 10) * 10;
         const g = Math.floor(imageData[i + 1] / 10) * 10;
         const b = Math.floor(imageData[i + 2] / 10) * 10;
         const rgb = `${r},${g},${b}`;
         
-        // Skip too dark or too light colors
         const brightness = (r * 299 + g * 587 + b * 114) / 1000;
         if (brightness < 40 || brightness > 220) continue;
 
@@ -61,22 +68,29 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgr
         }
       }
 
-      // Generate complementary/harmonious palette
       const brand = `${dominantColor.r} ${dominantColor.g} ${dominantColor.b}`;
-      
-      // Surface is a very dark, desaturated version of brand
       const surface = `${Math.floor(dominantColor.r * 0.1)} ${Math.floor(dominantColor.g * 0.1)} ${Math.floor(dominantColor.b * 0.15)}`;
-      
-      // Text is very light
       const text = '240 240 240';
 
       onSelectBg({
+        ...currentBg,
         url: imgUrl,
         photographer: 'User Upload',
         palette: { brand, surface, text }
       });
       setIsExtracting(false);
     };
+  };
+
+  const applyThemePreset = (theme: typeof THEME_PRESETS[0]) => {
+    onSelectBg({
+      ...currentBg,
+      palette: {
+        ...currentBg.palette,
+        brand: theme.brand,
+        surface: theme.surface
+      }
+    });
   };
 
   return (
@@ -95,7 +109,7 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgr
           className={`flex flex-col items-center gap-1.5 transition-all ${activeTab === 'theme' ? 'text-brand' : 'text-text-main/30 hover:text-text-main/60'}`}
         >
           <Palette size={20} />
-          <span className="text-[7px] font-black uppercase tracking-widest">Colors</span>
+          <span className="text-[7px] font-black uppercase tracking-widest">Theme</span>
         </button>
         <button 
           onClick={() => setActiveTab('layout')}
@@ -164,9 +178,12 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgr
 
         {activeTab === 'theme' && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className="p-4 bg-text-main/5 rounded-xl border border-text-main/10">
-              <span className="text-[8px] font-black uppercase tracking-widest text-text-main/20 mb-4 block">Current_Palette</span>
-              <div className="flex gap-4">
+            <div className="p-4 bg-text-main/5 rounded-xl border border-text-main/10 relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-30 transition-opacity">
+                <Sparkles size={40} className="text-brand" />
+              </div>
+              <span className="text-[8px] font-black uppercase tracking-widest text-text-main/20 mb-4 block">Active_Palette</span>
+              <div className="flex gap-4 relative z-10">
                 <div className="flex flex-col items-center gap-2">
                   <div className="w-12 h-12 rounded-full border border-text-main/10 shadow-xl" style={{ backgroundColor: `rgb(${currentBg.palette.brand})` }} />
                   <span className="text-[7px] font-black uppercase text-text-main/40">Brand</span>
@@ -175,17 +192,35 @@ const SettingsApp: React.FC<SettingsAppProps> = ({ currentBg, onSelectBg, backgr
                   <div className="w-12 h-12 rounded-full border border-text-main/10 shadow-xl" style={{ backgroundColor: `rgb(${currentBg.palette.surface})` }} />
                   <span className="text-[7px] font-black uppercase text-text-main/40">Surface</span>
                 </div>
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-12 h-12 rounded-full border border-text-main/10 shadow-xl" style={{ backgroundColor: `rgb(${currentBg.palette.text})` }} />
-                  <span className="text-[7px] font-black uppercase text-text-main/40">Text</span>
-                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-brand/5 border border-brand/20 rounded-xl">
-              <Sparkles size={16} className="text-brand" />
-              <p className="text-[9px] text-brand font-bold leading-relaxed">
-                Adaptive Theme Engine is active. System colors are automatically calibrated based on the visual entropy of your wallpaper.
+            <div className="space-y-3">
+              <span className="text-[8px] font-black uppercase tracking-widest text-text-main/20 ml-1">Manual_Presets</span>
+              <div className="grid grid-cols-2 gap-2">
+                {THEME_PRESETS.map((theme, idx) => {
+                  const isActive = currentBg.palette.brand === theme.brand;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => applyThemePreset(theme)}
+                      className={`flex items-center gap-3 p-2.5 rounded-lg border transition-all ${isActive ? 'bg-brand/10 border-brand' : 'bg-text-main/5 border-text-main/5 hover:border-text-main/20'}`}
+                    >
+                      <div className="flex -space-x-2">
+                        <div className="w-6 h-6 rounded-full border border-black/20" style={{ backgroundColor: `rgb(${theme.brand})` }} />
+                        <div className="w-6 h-6 rounded-full border border-black/20" style={{ backgroundColor: `rgb(${theme.surface})` }} />
+                      </div>
+                      <span className={`text-[8px] font-black uppercase tracking-tighter ${isActive ? 'text-brand' : 'text-text-main/60'}`}>{theme.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 bg-brand/5 border border-brand/20 rounded-lg">
+              <Info size={10} className="text-brand" />
+              <p className="text-[8px] text-brand/70 font-bold leading-relaxed uppercase tracking-tighter">
+                By default, colors are extracted from your wallpaper DNA. Selecting a preset will override the adaptive engine.
               </p>
             </div>
           </div>
