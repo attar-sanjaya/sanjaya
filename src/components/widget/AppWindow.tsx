@@ -436,12 +436,12 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
                onAddEvent={onAddEvent}
              />
           ) : isMind ? (
-            <div className="h-full flex flex-col p-4 font-label">
+            <div className="h-full flex flex-col p-4 font-label relative">
               {/* Messages */}
               <div 
                 ref={chatContainerRef}
                 onScroll={handleScroll}
-                className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 mb-4 relative"
+                className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 mb-4"
               >
                 {messages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
@@ -474,17 +474,17 @@ If the user wants to perform an action, append a JSON block inside <ACTION> tags
                   </div>
                 )}
                 <div ref={chatEndRef} />
-
-                {/* Scroll to Bottom Button */}
-                {showScrollBottom && (
-                  <button
-                    onClick={scrollToBottom}
-                    className="fixed bottom-24 right-8 w-8 h-8 rounded-full bg-surface/80 backdrop-blur-xl border border-text-main/10 text-text-main flex items-center justify-center shadow-2xl hover:bg-brand/20 hover:border-brand/40 transition-all animate-ui-pop z-50"
-                  >
-                    <ChevronDown size={16} />
-                  </button>
-                )}
               </div>
+
+              {/* Scroll to Bottom Button - Fixed positioning relative to chat window */}
+              {showScrollBottom && (
+                <button
+                  onClick={scrollToBottom}
+                  className="absolute bottom-20 right-6 w-8 h-8 rounded-full bg-surface/80 backdrop-blur-xl border border-text-main/10 text-text-main flex items-center justify-center shadow-2xl hover:bg-brand/20 hover:border-brand/40 transition-all animate-ui-pop z-50"
+                >
+                  <ChevronDown size={16} />
+                </button>
+              )}
               
               {/* Bottom Input Area */}
               {voiceMode ? (
