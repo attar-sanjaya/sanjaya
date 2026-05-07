@@ -2,37 +2,231 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── CORVUS Design Tokens ─────────────────────────────────── */
+:root {
+  --brand-rgb: 0 200 180;
+  --surface-rgb: 13 21 40;
+  --text-rgb: 220 230 255;
+
+  --c-brand: rgba(0, 200, 180, 1);
+  --c-brand-dim: rgba(0, 200, 180, 0.15);
+  --c-brand-glow: rgba(0, 200, 180, 0.4);
+  --c-surface: rgba(255, 255, 255, 0.04);
+  --c-border: rgba(255, 255, 255, 0.08);
+  --c-border-active: rgba(0, 200, 180, 0.35);
+  --c-bg-base: #0a0e1a;
+  --c-bg-raised: #0d1528;
+
+  --radius-panel: 16px;
+  --radius-bubble: 14px;
+  --radius-btn: 10px;
+
+  --blur-panel: blur(20px);
+  --blur-dock: blur(16px);
+
+  --transition: 200ms ease;
+  --font-body: clamp(12px, 1.4vw, 15px);
+}
+
+/* ─── Base ──────────────────────────────────────────────────── */
 @layer base {
-  body {
-    @apply bg-black text-text-main antialiased overflow-hidden font-sans;
+  html, body {
+    font-size: var(--font-body);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    background: var(--c-bg-base);
+    color: rgb(var(--text-rgb));
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
   }
-  
-  h1, h2, h3, h4 {
-    @apply font-display font-black;
+
+  * {
+    box-sizing: border-box;
   }
 }
 
-.glass-morphism {
-  @apply backdrop-blur-xl bg-surface/40 border border-text-main/10 shadow-2xl;
+/* ─── Glass Panel ───────────────────────────────────────────── */
+.glass-panel {
+  background: var(--c-surface);
+  backdrop-filter: var(--blur-panel);
+  -webkit-backdrop-filter: var(--blur-panel);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-panel);
 }
 
-.dock-item {
-  @apply flex flex-col items-center justify-center transition-all duration-300 hover:scale-110 cursor-pointer;
+/* ─── Resize Handles ─────────────────────────────────────────── */
+.resize-handle {
+  background: rgba(0, 200, 180, 0.12);
+  border-radius: 4px;
+  transition: background var(--transition);
+}
+.resize-handle:hover,
+.resize-handle.active {
+  background: rgba(0, 200, 180, 0.45);
 }
 
-/* Custom Scrollbar for CORVUS */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+/* ─── Neumorphic Mic Button ──────────────────────────────────── */
+.neumorph-mic {
+  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.08), rgba(0,0,0,0) 70%),
+              rgba(0, 200, 180, 0.08);
+  box-shadow:
+    6px 6px 12px rgba(0, 0, 0, 0.5),
+    -4px -4px 10px rgba(255, 255, 255, 0.04),
+    inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(0, 200, 180, 0.18);
+  transition: all var(--transition);
+}
+.neumorph-mic:hover {
+  box-shadow:
+    6px 6px 16px rgba(0, 0, 0, 0.6),
+    -4px -4px 12px rgba(255, 255, 255, 0.05),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1),
+    0 0 20px rgba(0, 200, 180, 0.2);
+  border-color: rgba(0, 200, 180, 0.35);
+}
+.neumorph-mic.active {
+  box-shadow:
+    inset 4px 4px 10px rgba(0, 0, 0, 0.5),
+    inset -2px -2px 6px rgba(255, 255, 255, 0.04),
+    0 0 30px rgba(0, 200, 180, 0.5),
+    0 0 60px rgba(0, 200, 180, 0.2);
+  background: rgba(0, 200, 180, 0.18);
+  border-color: rgba(0, 200, 180, 0.6);
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
+/* ─── Chat Scrollbar ─────────────────────────────────────────── */
+.corvus-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 200, 180, 0.2) transparent;
+}
+.corvus-scroll::-webkit-scrollbar {
+  width: 3px;
+}
+.corvus-scroll::-webkit-scrollbar-track {
   background: transparent;
 }
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-text-main/10 rounded-full;
+.corvus-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 200, 180, 0.2);
+  border-radius: 99px;
+}
+.corvus-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 200, 180, 0.45);
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  @apply bg-brand/30;
+/* ─── Panel Header Label ─────────────────────────────────────── */
+.panel-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.5;
 }
+
+/* ─── Dock (Bottom Navbar) ───────────────────────────────────── */
+.dock-pill {
+  background: rgba(10, 14, 26, 0.75);
+  backdrop-filter: var(--blur-dock);
+  -webkit-backdrop-filter: var(--blur-dock);
+  border: 1px solid var(--c-border);
+  border-radius: 99px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.dock-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all var(--transition);
+  border: none;
+  background: transparent;
+  color: rgba(220, 230, 255, 0.35);
+  outline: none;
+}
+.dock-btn:hover {
+  color: rgba(220, 230, 255, 0.85);
+  background: rgba(255,255,255,0.05);
+}
+.dock-btn.active {
+  color: var(--c-brand);
+  background: rgba(0, 200, 180, 0.1);
+}
+.dock-btn .dock-underline {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 18px;
+  height: 2px;
+  background: var(--c-brand);
+  border-radius: 99px;
+  box-shadow: 0 0 8px var(--c-brand-glow);
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.dock-btn.active .dock-underline {
+  opacity: 1;
+}
+
+/* ─── Input ──────────────────────────────────────────────────── */
+.corvus-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-btn);
+  padding: 10px 52px 10px 14px;
+  font-size: clamp(11px, 1.2vw, 13px);
+  font-family: 'Space Grotesk', sans-serif;
+  color: rgb(var(--text-rgb));
+  resize: none;
+  outline: none;
+  transition: border-color var(--transition);
+  max-height: 120px;
+  overflow-y: auto;
+  line-height: 1.5;
+}
+.corvus-input::placeholder {
+  color: rgba(220, 230, 255, 0.2);
+}
+.corvus-input:focus {
+  border-color: var(--c-border-active);
+}
+
+/* ─── Date Circle States ─────────────────────────────────────── */
+.date-today {
+  border: 1px solid rgba(0, 200, 180, 0.5);
+  color: var(--c-brand);
+}
+.date-selected {
+  background: var(--c-brand);
+  color: #0a0e1a;
+  font-weight: 700;
+  box-shadow: 0 0 12px var(--c-brand-glow);
+}
+.date-has-event::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: var(--c-brand);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--c-brand-glow);
+}
+
+/* ─── Legacy compat ──────────────────────────────────────────── */
+.custom-scrollbar { scrollbar-width: thin; }
+.custom-scrollbar::-webkit-scrollbar { width: 3px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,200,180,0.18); border-radius: 99px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(0,200,180,0.4); }
